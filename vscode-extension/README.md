@@ -1,116 +1,127 @@
+<div align="center">
+
 # Llamit - AI-Powered Commit Messages
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/crstian19/llamit)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/crstian19/llamit/blob/main/LICENSE)
-[![Vibecoded](https://img.shields.io/badge/vibecoded-100%25-blueviolet.svg)](https://github.com/crstian19/llamit)
+<img src="https://cdn.crstian.me/llamit.png" alt="Llamit Logo" width="200"/>
 
-> ✨ **Fully vibecoded** - This extension was entirely developed using AI assistance.
+![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
+![VS Code Installs](https://img.shields.io/visual-studio-marketplace/v/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
+![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-powered-black?style=for-the-badge&logo=ollama&logoColor=white)
 
-Generate semantic commit messages instantly using your local Ollama LLM instance. No cloud services, no API keys - everything runs locally!
+> ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
+
+**Generate semantic commit messages using your local Ollama LLM instance.**
+
+*No cloud services, no API keys - everything runs locally.*
+
+</div>
 
 ## Features
 
 - 🚀 **Generate commit messages instantly** from staged changes
 - 🔒 **Fully local** - uses your own Ollama instance
-- 📝 **Conventional Commits** - follows standard commit message format
+- 📝 **Conventional Commits** - follows standard commit message format (and many others!)
 - ⚡ **Fast** - powered by a lightweight Go CLI
-- 🎨 **Seamless integration** - works directly in VS Code's Source Control view
-
-![Llamit Demo](https://raw.githubusercontent.com/crstian/llamit/main/assets/demo.gif)
+- 🎨 **VS Code integration** - seamless SCM toolbar button
 
 ## Prerequisites
 
-Before using Llamit, you need:
-
-1. **[Ollama](https://ollama.ai/)** installed and running locally
-2. A compatible model downloaded (default: `qwen3-coder:30b`)
-
-```bash
-# Install Ollama, then pull a model:
-ollama pull qwen3-coder:30b
-```
+- [Ollama](https://ollama.ai/) installed and running locally
+- A compatible model (default: `qwen3-coder:30b`, but any model works)
+- VS Code 1.85.0 or higher
 
 ## Usage
 
-1. **Stage your changes** in Git
-2. **Click the ✨ Llamit button** in the Source Control toolbar
-3. **Review the generated commit message** and commit!
+1. **Start Ollama**: Make sure Ollama is running
+   ```bash
+   ollama serve
+   ```
 
-Or use the Command Palette:
-- Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac)
-- Type: `Llamit: Generate Commit Message`
+2. **Stage your changes**: Use Git to stage the files you want to commit
+   ```bash
+   git add .
+   ```
+
+3. **Generate commit message**:
+   - Click the ✨ **Llamit** button in the Source Control toolbar, or
+   - Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+   - Run: `Llamit: Generate Commit Message`
+
+4. **Review and commit**: The generated message appears in the commit input box. Review it and commit!
 
 ## Configuration
 
-Customize Llamit in VS Code settings:
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `llamit.ollamaUrl` | Ollama API endpoint | `http://localhost:11434/api/generate` |
-| `llamit.model` | Model to use | `qwen3-coder:30b` |
-
-### Example Configuration
+You can customize Llamit in VS Code settings:
 
 ```json
 {
   "llamit.ollamaUrl": "http://localhost:11434/api/generate",
-  "llamit.model": "qwen3-coder:7b"
+  "llamit.model": "qwen3-coder:30b",
+  "llamit.commitFormat": "conventional",
+  "llamit.customFormat": ""
 }
 ```
 
-## Recommended Models
+### Settings
 
-Any Ollama model works, but these are optimized for code:
+- **`llamit.ollamaUrl`**: The Ollama API endpoint URL (default: `http://localhost:11434/api/generate`)
+- **`llamit.model`**: The model to use for generation (default: `qwen3-coder:30b`)
+- **`llamit.commitFormat`**: The commit message format to use (default: `conventional`)
+  - Available formats: `conventional`, `angular`, `gitmoji`, `karma`, `semantic`, `google`, `custom`
+- **`llamit.customFormat`**: Custom format template (only used when `commitFormat` is set to `custom`)
 
-- `qwen3-coder:30b` - Best quality (default) 🌟
-- `qwen3-coder:7b` - Faster, lighter ⚡
-- `codellama:13b` - Good balance
-- `deepseek-coder:6.7b` - Fast and efficient
+### Commit Message Formats
+
+Llamit supports multiple commit message formats to match your team's conventions:
+
+#### Conventional Commits (Default)
+```
+feat(auth): add user login functionality
+
+Implements OAuth2 authentication flow
+```
+
+#### Gitmoji
+```
+✨ feat(api): add new endpoint for user profiles
+
+Implements GET /api/users/:id endpoint
+```
+
+#### Custom Format
+Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.customFormat`.
+
+## Extension Settings
+
+This extension contributes the following settings:
+
+* `llamit.ollamaUrl`: URL of the Ollama generation API.
+* `llamit.model`: Name of the Ollama model to use.
+* `llamit.commitFormat`: Format of the generated commit message.
+* `llamit.customFormat`: Custom template for the commit message.
 
 ## How It Works
 
-Llamit uses a two-component architecture:
+Llamit consists of two components:
+1. **Go CLI**: A fast, standalone binary that processes diffs and talks to Ollama.
+2. **VS Code Extension**: A lightweight TypeScript bridge that integrates with the VS Code SCM view.
 
-1. **Go CLI**: Processes git diffs and communicates with Ollama
-2. **VS Code Extension**: Integrates with the Source Control view
-
-The extension:
-1. Executes `git diff --cached` to get staged changes
-2. Passes the diff to the Go CLI via stdin
-3. The CLI sends it to your local Ollama instance
-4. Returns a formatted commit message following Conventional Commits
-
-## Requirements
-
-- VS Code 1.85.0 or higher
-- Ollama running locally
-- Git repository
-
-## Known Issues
-
-- The extension requires Ollama to be running. If you see errors, make sure Ollama is started.
-- Large diffs may take longer to process depending on your model size.
-
-## Contributing
-
-Found a bug or want to contribute? Check out the [GitHub repository](https://github.com/crstian/llamit)!
+Everything runs on your machine. Your code never leaves your local environment.
 
 ## Release Notes
 
+### 0.2.1
+- Added configurable commit message formats (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
+- Added custom format template support
+- Improved error handling and reliability
+- Updated documentation and badges
+
 ### 0.1.0
-
-Initial release of Llamit:
-- Generate commit messages from staged changes
-- Local Ollama integration
-- Configurable models and endpoints
-- Retry logic with exponential backoff
-
-## License
-
-MIT License - see [LICENSE](https://github.com/crstian/llamit/blob/main/LICENSE)
+- Initial release with Conventional Commits support
 
 ---
 
 **Made with 🤖 and ✨ through vibecoding**
 
-Enjoy using Llamit? [⭐ Star us on GitHub](https://github.com/crstian/llamit)
+[GitHub Repository](https://github.com/crstian19/llamit)

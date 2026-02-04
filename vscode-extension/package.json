@@ -1,8 +1,8 @@
 {
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
-    "description": "Generate semantic commit messages instantly using your local Ollama LLM. Fully local, no cloud, no API keys needed.",
-    "version": "0.2.0",
+    "description": "Generate semantic commit messages using your local Ollama LLM instance. Fast, secure, and fully local.",
+    "version": "0.2.1",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
@@ -115,7 +115,7 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
+        "vscode:prepublish": "cd ../go-cli && go build -o cli main.go && cd ../vscode-extension && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",

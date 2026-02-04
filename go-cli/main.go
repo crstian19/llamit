@@ -27,111 +27,99 @@ type OllamaGenerateResponse struct {
 
 // Format templates for different commit message styles
 const (
-	conventionalFormat = `Generate a commit message following the Conventional Commits format:
-<type>(<scope>): <short summary>
+	conventionalFormat = `Generate a concise commit message following the Conventional Commits format:
+<type>(<scope>): <description>
 
 [optional body]
 
-[optional footer]
-
 Rules:
-1. First line must be 50 characters or less
-2. Use one of these types: feat, fix, docs, style, refactor, perf, test, build, ci, chore
-3. Scope is optional but recommended (e.g., api, ui, auth)
-4. Summary must be lowercase and not end with a period
-5. Body should explain what and why, not how
-6. Footer for breaking changes: BREAKING CHANGE: <description>
+1. **Be extremely concise.** Use the fewest words possible.
+2. First line must be 50 characters or less.
+3. Use imperative mood (e.g., "add", "fix", "refactor").
+4. Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore.
+5. Scope is optional but recommended.
+6. Summary must be lowercase and no period at the end.
+7. Body is optional; if used, limit to 1-2 short bullet points about the "why".
 
 The diff is:
 
 %s`
 
-	angularFormat = `Generate a commit message following the Angular format:
+	angularFormat = `Generate a concise commit message following the Angular format:
 <type>(<scope>): <subject>
 
-<body>
-
-<footer>
+[optional body]
 
 Rules:
-1. Subject line must be 50 characters or less
-2. Type must be one of: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
-3. Scope is required (component/file affected)
-4. Subject must be imperative, lowercase, no period
-5. Body is optional, wrap at 72 characters
-6. Footer for breaking changes or issue references
+1. **Brevity is key.** Keep it short and direct.
+2. Subject line must be 50 characters or less.
+3. Type must be: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert.
+4. Scope is required.
+5. Subject must be imperative, lowercase, no period.
+6. Body is optional; wrap at 72 characters and keep it very brief.
 
 The diff is:
 
 %s`
 
-	gitmojiFormat = `Generate a commit message following the Gitmoji format:
+	gitmojiFormat = `Generate a concise commit message following the Gitmoji format:
 <emoji> <type>(<scope>): <description>
 
 [optional body]
 
 Rules:
-1. Start with an appropriate gitmoji emoji
-2. Common emojis: ✨ feat, 🐛 fix, 📝 docs, 💄 style, ♻️ refactor, ⚡️ perf, ✅ test, 🔧 config
-3. Keep first line under 50 characters (including emoji)
-4. Use imperative mood
-5. Body is optional for complex changes
+1. **Be concise.** Focus on the main change.
+2. Start with an appropriate gitmoji (✨, 🐛, 📝, 💄, ♻️, ⚡️, ✅, 🔧).
+3. Keep first line under 50 characters (including emoji).
+4. Use imperative mood.
+5. Body is optional and should be very short.
 
 The diff is:
 
 %s`
 
-	karmaFormat = `Generate a commit message following the Karma format:
+	karmaFormat = `Generate a concise commit message following the Karma format:
 <type>(<scope>): <subject>
 
-<body>
-
-<footer>
+[optional body]
 
 Rules:
-1. Type must be one of: feat, fix, docs, style, refactor, perf, test, chore
-2. Scope is optional
-3. Subject must be imperative, present tense
-4. Subject must not end with a period
-5. Body should use imperative mood
-6. Footer for breaking changes: BREAKING CHANGE: <description>
+1. **Keep it short.** No unnecessary details.
+2. Type: feat, fix, docs, style, refactor, perf, test, chore.
+3. Subject must be imperative, present tense, no period.
+4. First line must be 50 characters or less.
+5. Body is optional and should be brief.
 
 The diff is:
 
 %s`
 
-	semanticFormat = `Generate a commit message following the Semantic Commit format:
+	semanticFormat = `Generate a concise commit message following the Semantic format:
 <type>: <description>
 
 [optional body]
 
-[optional footer]
-
 Rules:
-1. Type must be one of: feat, fix, docs, style, refactor, perf, test, build, ops, chore
-2. Description should be concise and clear
-3. Use imperative mood
-4. First line should be 50 characters or less
-5. Body explains the change in detail
-6. Footer for references or breaking changes
+1. **Be brief and direct.**
+2. Type: feat, fix, docs, style, refactor, perf, test, build, ops, chore.
+3. First line should be 50 characters or less.
+4. Use imperative mood.
+5. Body is optional and should focus on "why".
 
 The diff is:
 
 %s`
 
-	googleFormat = `Generate a commit message following the Google format:
+	googleFormat = `Generate a concise commit message following the Google format:
 <subject>
 
-<body>
+[optional body]
 
 Rules:
-1. Subject line: concise summary in imperative mood
-2. Subject must be 50 characters or less
-3. Separate subject from body with blank line
-4. Body: explain what and why, not how
-5. Wrap body at 72 characters
-6. No specific type prefix required
-7. Focus on clarity and completeness
+1. **Maximum conciseness.**
+2. Subject: concise summary in imperative mood, max 50 chars.
+3. Body: explain the essential "why", keep it very short.
+4. Wrap body at 72 characters.
 
 The diff is:
 
@@ -286,7 +274,13 @@ func main() {
 	model := flag.String("model", "qwen3-coder:30b", "Ollama model to use")
 	format := flag.String("format", "conventional", "Commit message format (conventional, angular, gitmoji, karma, semantic, google, custom)")
 	customTemplate := flag.String("custom-template", "", "Custom format template (only used when format is 'custom')")
+	version := flag.Bool("version", false, "Print version and exit")
 	flag.Parse()
+
+	if *version {
+		fmt.Println("Llamit CLI v0.2.1-format-fix")
+		return
+	}
 
 	// Configure logger to write to stderr by default
 	log.SetOutput(os.Stderr)
