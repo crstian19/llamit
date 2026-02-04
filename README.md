@@ -2,7 +2,7 @@
 
 # Llamit - AI-Powered Commit Messages
 
-<img src="https://cdn.crstian.me/llamit.png" alt="Llamit Logo" width="200"/>
+<img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200"/>
 
 ![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
 ![Azure DevOps Installs](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
