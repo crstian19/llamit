@@ -1,6 +1,8 @@
 # Binaries
 go-cli/cli
 go-cli/cli.exe
+**/go-cli/cli
+**/go-cli/cli.exe
 *.exe
 *.dll
 *.so

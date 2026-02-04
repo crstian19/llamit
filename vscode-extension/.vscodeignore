@@ -1,0 +1,36 @@
+# VS Code Extension Packaging - Files to exclude
+
+# Source files
+src/**
+tsconfig.json
+.mocharc.json
+
+# Tests
+**/test/**
+**/*.test.ts
+**/*.spec.ts
+
+# Build artifacts
+.vscode-test/**
+*.vsix
+
+# Development
+.gitignore
+.vscode/**
+test-setup.sh
+
+# Documentation that's not needed in the package
+CLAUDE.md
+
+# Node modules (installed by user)
+node_modules/**
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Source maps (optional - uncomment if you don't want them)
+# **/*.map

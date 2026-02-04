@@ -1,0 +1,100 @@
+{
+    "name": "llamit",
+    "displayName": "Llamit - AI Commit Messages",
+    "description": "Generates commit messages using a local Ollama instance.",
+    "version": "0.1.0",
+    "publisher": "llamit-dev",
+    "license": "MIT",
+    "author": {
+        "name": "Cristian Gutierrez",
+        "url": "https://github.com/crstian19"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/crstian19/llamit"
+    },
+    "homepage": "https://github.com/crstian19/llamit#readme",
+    "bugs": {
+        "url": "https://github.com/crstian19/llamit/issues"
+    },
+    "keywords": [
+        "git",
+        "commit",
+        "ai",
+        "ollama",
+        "llm",
+        "commit-message",
+        "conventional-commits"
+    ],
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "SCM Providers",
+        "Machine Learning"
+    ],
+    "activationEvents": [
+        "onCommand:llamit.generateCommit"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "llamit.generateCommit",
+                "title": "Llamit: Generate Commit Message",
+                "icon": "$(lightbulb-sparkle)"
+            },
+            {
+                "command": "llamit.openSettings",
+                "title": "Llamit: Open Settings"
+            }
+        ],
+        "menus": {
+            "scm/title": [
+                {
+                    "command": "llamit.generateCommit",
+                    "when": "scmProvider == 'git'",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Llamit",
+            "properties": {
+                "llamit.ollamaUrl": {
+                    "type": "string",
+                    "default": "http://localhost:11434/api/generate",
+                    "description": "The URL for the Ollama '/api/generate' endpoint."
+                },
+                "llamit.model": {
+                    "type": "string",
+                    "default": "qwen3-coder:30b",
+                    "description": "The Ollama model to use for generating commit messages."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./out/test/runTests.js",
+        "test:unit": "mocha --require ts-node/register 'src/test/unit/**/*.test.ts'",
+        "package": "vsce package"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/node": "18.x",
+        "@types/mocha": "^10.0.6",
+        "@types/sinon": "^17.0.3",
+        "@types/glob": "^8.1.0",
+        "@vscode/test-electron": "^2.3.9",
+        "@vscode/vsce": "^2.22.0",
+        "glob": "^10.3.10",
+        "mocha": "^10.3.0",
+        "sinon": "^17.0.1",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}
