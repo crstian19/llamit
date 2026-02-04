@@ -5,21 +5,24 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-02-04
+## [0.2.2] - 2026-02-04
 
 ### Added
-- Extension icon and branding
-- "Open Settings" command for quick configuration access
-- Gallery banner with dark theme
-- Badges showing the extension was fully vibecoded
-- Enhanced marketplace description
+- **Configurable Formats**: Support for 6 predefined styles (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
+- **Custom Format Templates**: New setting `llamit.customFormat` for user-defined prompts
+- **Advanced Post-processing**: Automated stripping of markdown backticks and artifacts from LLM output
+- **Optimized Prompts**: Enhanced system instructions for precise, one-line commit messages
+- **Marketplace Branding**: High-fidelity badges, refreshed logo, and professional description
 
 ### Changed
-- Improved README with badges and visual elements
-- Optimized extension icon (128x128, 23KB)
+- Integrated Go CLI build process into extension packaging (`npm run package`)
+- Improved retry logic for better resilience against transient Ollama errors
+- Updated extension settings with descriptive enums and multi-line custom editor
 
 ### Fixed
-- Repository metadata and publisher information
+- Outdated binary builds in extension packages
+- Marker artifacts (```) appearing in commit messages
+- Extension ID mapping in integration tests
 
 ## [0.1.0] - 2026-02-04
 

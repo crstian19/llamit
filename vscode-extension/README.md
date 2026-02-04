@@ -111,11 +111,24 @@ Everything runs on your machine. Your code never leaves your local environment.
 
 ## Release Notes
 
-### 0.2.1
-- Added configurable commit message formats (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
-- Added custom format template support
-- Improved error handling and reliability
-- Updated documentation and badges
+## [0.2.2] - 2026-02-04
+
+### Added
+- **Configurable Formats**: Support for 6 predefined styles (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
+- **Custom Format Templates**: New setting `llamit.customFormat` for user-defined prompts
+- **Advanced Post-processing**: Automated stripping of markdown backticks and artifacts from LLM output
+- **Optimized Prompts**: Enhanced system instructions for precise, one-line commit messages
+- **Marketplace Branding**: High-fidelity badges, refreshed logo, and professional description
+
+### Changed
+- Integrated Go CLI build process into extension packaging (`npm run package`)
+- Improved retry logic for better resilience against transient Ollama errors
+- Updated extension settings with descriptive enums and multi-line custom editor
+
+### Fixed
+- Outdated binary builds in extension packages
+- Marker artifacts (```) appearing in commit messages
+- Extension ID mapping in integration tests
 
 ### 0.1.0
 - Initial release with Conventional Commits support

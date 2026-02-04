@@ -10,6 +10,7 @@ import (
 	"log" // Import the log package
 	"net/http"
 	"os"
+	"strings"
 	"time" // Import the time package
 )
 
@@ -40,6 +41,7 @@ Rules:
 5. Scope is optional but recommended.
 6. Summary must be lowercase and no period at the end.
 7. Body is optional; if used, limit to 1-2 short bullet points about the "why".
+8. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -57,6 +59,7 @@ Rules:
 4. Scope is required.
 5. Subject must be imperative, lowercase, no period.
 6. Body is optional; wrap at 72 characters and keep it very brief.
+7. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -73,6 +76,7 @@ Rules:
 3. Keep first line under 50 characters (including emoji).
 4. Use imperative mood.
 5. Body is optional and should be very short.
+6. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -89,6 +93,7 @@ Rules:
 3. Subject must be imperative, present tense, no period.
 4. First line must be 50 characters or less.
 5. Body is optional and should be brief.
+6. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -105,6 +110,7 @@ Rules:
 3. First line should be 50 characters or less.
 4. Use imperative mood.
 5. Body is optional and should focus on "why".
+6. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -120,6 +126,7 @@ Rules:
 2. Subject: concise summary in imperative mood, max 50 chars.
 3. Body: explain the essential "why", keep it very short.
 4. Wrap body at 72 characters.
+5. **IMPORTANT: DO NOT use markdown.** No backticks, no code blocks. Output plain text only.
 
 The diff is:
 
@@ -258,7 +265,9 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 	}
 	log.Print("Ollama response decoded successfully.")
 
-	_, err = fmt.Fprint(stdout, ollamaResp.Response)
+	commitMsg := cleanResponse(ollamaResp.Response)
+
+	_, err = fmt.Fprint(stdout, commitMsg)
 	if err != nil {
 		log.Printf("ERROR: error writing to stdout: %v", err)
 		return fmt.Errorf("error writing to stdout: %w", err)
@@ -266,6 +275,34 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 	log.Print("Commit message sent to stdout.")
 
 	return nil
+}
+
+// cleanResponse removes common LLM artifacts like markdown backticks
+func cleanResponse(s string) string {
+	s = strings.TrimSpace(s)
+	// Remove opening ```markdown or ```
+	if strings.HasPrefix(s, "```") {
+		lines := strings.Split(s, "\n")
+		if len(lines) > 1 && strings.HasPrefix(lines[0], "```") {
+			// Find closing ```
+			lastIdx := -1
+			for i := len(lines) - 1; i > 0; i-- {
+				if strings.TrimSpace(lines[i]) == "```" {
+					lastIdx = i
+					break
+				}
+			}
+			if lastIdx != -1 {
+				s = strings.Join(lines[1:lastIdx], "\n")
+			} else {
+				s = strings.Join(lines[1:], "\n")
+			}
+		}
+	}
+	// Also strip any remaining single or triple backticks just in case
+	s = strings.ReplaceAll(s, "```", "")
+	s = strings.ReplaceAll(s, "`", "")
+	return strings.TrimSpace(s)
 }
 
 func main() {
