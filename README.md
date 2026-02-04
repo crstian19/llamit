@@ -1,12 +1,14 @@
 <div align="center">
 
-<img src="llamit.png" alt="Llamit Logo" width="200"/>
-
 # Llamit - AI-Powered Commit Messages
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/crstian19/llamit/releases)
-[![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC.svg)](https://code.visualstudio.com/)
+<img src="https://cdn.crstian.me/llamit.png" alt="Llamit Logo" width="200"/>
+
+![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
+![Azure DevOps Installs](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
+![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
+![Go Version](https://img.shields.io/badge/Go-1.25.6-00ADD8?style=for-the-badge&logo=go&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-powered-black?style=for-the-badge&logo=ollama&logoColor=white)
 
 > ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
 
@@ -32,12 +34,11 @@
 
 ## Installation
 
-### Option 1: From VSIX (Recommended)
-1. Download the latest `.vsix` file from [Releases](https://github.com/crstian19/llamit/releases)
-2. Open VS Code
-3. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-4. Click the `...` menu → "Install from VSIX..."
-5. Select the downloaded file
+### Option 1: From VS Code Marketplace (Recommended)
+1. Open VS Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Llamit"
+4. Click **Install**
 
 ### Option 2: Build from Source
 ```bash
@@ -56,6 +57,8 @@ npm run compile
 
 # Package the extension
 npx vsce package
+# Install the generated .vsix file in VS Code
+```
 ```
 
 ## Usage
