@@ -1,0 +1,55 @@
+# Binaries
+go-cli/cli
+go-cli/cli.exe
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Node modules
+node_modules/
+
+# VS Code extension build output
+vscode-extension/out/
+vscode-extension/dist/
+
+# VS Code test
+vscode-extension/.vscode-test/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code files
+.claude/
+CLAUDE.md
+**/CLAUDE.md
+
+# Environment files
+.env
+.env.local
+
+# Package files
+*.vsix
+
+# Compiled TypeScript
+*.js.map
