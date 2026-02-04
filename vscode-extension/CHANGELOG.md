@@ -5,6 +5,22 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-04
+
+### Added
+- Extension icon and branding
+- "Open Settings" command for quick configuration access
+- Gallery banner with dark theme
+- Badges showing the extension was fully vibecoded
+- Enhanced marketplace description
+
+### Changed
+- Improved README with badges and visual elements
+- Optimized extension icon (128x128, 23KB)
+
+### Fixed
+- Repository metadata and publisher information
+
 ## [0.1.0] - 2026-02-04
 
 ### Added

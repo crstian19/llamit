@@ -1,5 +1,9 @@
 # Llamit - AI-Powered Commit Messages
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/crstian19/llamit)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/crstian19/llamit/blob/main/LICENSE)
+[![Vibecoded](https://img.shields.io/badge/vibecoded-100%25-blueviolet.svg)](https://github.com/crstian19/llamit)
+
 > ✨ **Fully vibecoded** - This extension was entirely developed using AI assistance.
 
 Generate semantic commit messages instantly using your local Ollama LLM instance. No cloud services, no API keys - everything runs locally!

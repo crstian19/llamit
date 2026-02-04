@@ -1,10 +1,23 @@
 {
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
-    "description": "Generates commit messages using a local Ollama instance.",
-    "version": "0.1.0",
-    "publisher": "llamit-dev",
+    "description": "Generate semantic commit messages instantly using your local Ollama LLM. Fully local, no cloud, no API keys needed.",
+    "version": "0.2.0",
+    "publisher": "Crstian",
+    "icon": "llamit.png",
     "license": "MIT",
+    "galleryBanner": {
+        "color": "#1e1e1e",
+        "theme": "dark"
+    },
+    "qna": "marketplace",
+    "badges": [
+        {
+            "url": "https://img.shields.io/badge/vibecoded-100%25-blueviolet",
+            "href": "https://github.com/crstian19/llamit",
+            "description": "Fully vibecoded with AI"
+        }
+    ],
     "author": {
         "name": "Cristian Gutierrez",
         "url": "https://github.com/crstian19"

@@ -1,8 +1,20 @@
+<div align="center">
+
+<img src="llamit.png" alt="Llamit Logo" width="200"/>
+
 # Llamit - AI-Powered Commit Messages
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/crstian19/llamit/releases)
+[![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC.svg)](https://code.visualstudio.com/)
 
 > ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
 
-Llamit is a VS Code extension that generates semantic commit messages using your local Ollama LLM instance. No cloud services, no API keys - everything runs locally.
+**Generate semantic commit messages using your local Ollama LLM instance.**
+
+*No cloud services, no API keys - everything runs locally.*
+
+</div>
 
 ## Features
 
@@ -21,7 +33,7 @@ Llamit is a VS Code extension that generates semantic commit messages using your
 ## Installation
 
 ### Option 1: From VSIX (Recommended)
-1. Download the latest `.vsix` file from [Releases](../../releases)
+1. Download the latest `.vsix` file from [Releases](https://github.com/crstian19/llamit/releases)
 2. Open VS Code
 3. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
 4. Click the `...` menu → "Install from VSIX..."
@@ -30,7 +42,7 @@ Llamit is a VS Code extension that generates semantic commit messages using your
 ### Option 2: Build from Source
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/llamit.git
+git clone https://github.com/crstian19/llamit.git
 cd llamit
 
 # Build the Go CLI
