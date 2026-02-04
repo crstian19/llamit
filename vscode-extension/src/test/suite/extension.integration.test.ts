@@ -5,11 +5,11 @@ suite('Extension Integration Tests', () => {
     vscode.window.showInformationMessage('Running integration tests.');
 
     test('Extension should be present', () => {
-        assert.ok(vscode.extensions.getExtension('llamit-dev.llamit'));
+        assert.ok(vscode.extensions.getExtension('Crstian.llamit'));
     });
 
     test('Extension should activate', async () => {
-        const ext = vscode.extensions.getExtension('llamit-dev.llamit');
+        const ext = vscode.extensions.getExtension('Crstian.llamit');
         assert.ok(ext);
 
         await ext!.activate();
@@ -26,8 +26,12 @@ suite('Extension Integration Tests', () => {
 
         const ollamaUrl = config.get<string>('ollamaUrl');
         const model = config.get<string>('model');
+        const commitFormat = config.get<string>('commitFormat');
+        const customFormat = config.get<string>('customFormat');
 
         assert.strictEqual(ollamaUrl, 'http://localhost:11434/api/generate');
         assert.strictEqual(model, 'qwen3-coder:30b');
+        assert.strictEqual(commitFormat, 'conventional');
+        assert.strictEqual(customFormat, '');
     });
 });

@@ -6,6 +6,8 @@ import * as path from 'path';
 export interface LlamitConfig {
     ollamaUrl: string;
     model: string;
+    commitFormat: string;
+    customFormat: string;
 }
 
 export interface GitDiffResult {
@@ -31,7 +33,9 @@ export function getConfiguration(): LlamitConfig {
     const config = vscode.workspace.getConfiguration('llamit');
     return {
         ollamaUrl: config.get<string>('ollamaUrl') || 'http://localhost:11434/api/generate',
-        model: config.get<string>('model') || 'qwen3-coder:30b'
+        model: config.get<string>('model') || 'qwen3-coder:30b',
+        commitFormat: config.get<string>('commitFormat') || 'conventional',
+        customFormat: config.get<string>('customFormat') || ''
     };
 }
 
@@ -66,9 +70,20 @@ export function generateCommitMessage(
     diff: string
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
+        const args = [
+            '-ollama-url', config.ollamaUrl,
+            '-model', config.model,
+            '-format', config.commitFormat
+        ];
+
+        // Add custom template if format is 'custom' and template is provided
+        if (config.commitFormat === 'custom' && config.customFormat) {
+            args.push('-custom-template', config.customFormat);
+        }
+
         const child = execFile(
             binaryPath,
-            ['-ollama-url', config.ollamaUrl, '-model', config.model],
+            args,
             (error, stdout, stderr) => {
                 if (error) {
                     console.error(`execFile error for llamit cli: ${error.message}`);

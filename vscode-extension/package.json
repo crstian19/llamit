@@ -46,9 +46,6 @@
         "SCM Providers",
         "Machine Learning"
     ],
-    "activationEvents": [
-        "onCommand:llamit.generateCommit"
-    ],
     "main": "./out/extension.js",
     "contributes": {
         "commands": [
@@ -83,6 +80,36 @@
                     "type": "string",
                     "default": "qwen3-coder:30b",
                     "description": "The Ollama model to use for generating commit messages."
+                },
+                "llamit.commitFormat": {
+                    "type": "string",
+                    "default": "conventional",
+                    "enum": [
+                        "conventional",
+                        "angular",
+                        "gitmoji",
+                        "karma",
+                        "semantic",
+                        "google",
+                        "custom"
+                    ],
+                    "enumDescriptions": [
+                        "Conventional Commits format with type(scope): description",
+                        "Angular commit format with strict type/scope rules",
+                        "Gitmoji format with emoji prefixes",
+                        "Karma commit format",
+                        "Semantic commit format",
+                        "Google commit format",
+                        "Custom format using your own template"
+                    ],
+                    "description": "The commit message format to use."
+                },
+                "llamit.customFormat": {
+                    "type": "string",
+                    "default": "",
+                    "editPresentation": "multilineText",
+                    "markdownDescription": "Custom commit message format template. Only used when `#llamit.commitFormat#` is set to `custom`. Use placeholders like `<type>`, `<scope>`, `<description>` to guide the AI.",
+                    "description": "Custom format template (only used when commitFormat is 'custom')."
                 }
             }
         }

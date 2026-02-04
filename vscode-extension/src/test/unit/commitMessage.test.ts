@@ -6,7 +6,9 @@ suite('Commit Message Generation Tests', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
             ollamaUrl: 'http://localhost:11434/api/generate',
-            model: 'qwen3-coder:30b'
+            model: 'qwen3-coder:30b',
+            commitFormat: 'conventional',
+            customFormat: ''
         };
         const diff = 'diff --git a/test.txt b/test.txt\n+test line';
 
@@ -28,7 +30,9 @@ suite('Commit Message Generation Tests', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
             ollamaUrl: 'http://localhost:11434/api/generate',
-            model: 'test-model'
+            model: 'test-model',
+            commitFormat: 'conventional',
+            customFormat: ''
         };
         const diff = '';
 
@@ -44,7 +48,9 @@ suite('Commit Message Generation Tests', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
             ollamaUrl: 'http://localhost:11434/api/generate',
-            model: 'test-model'
+            model: 'test-model',
+            commitFormat: 'conventional',
+            customFormat: ''
         };
         const diff = `diff --git a/file1.txt b/file1.txt
 index abc123..def456 100644

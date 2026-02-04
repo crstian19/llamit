@@ -87,7 +87,9 @@ You can customize Llamit in VS Code settings:
 ```json
 {
   "llamit.ollamaUrl": "http://localhost:11434/api/generate",
-  "llamit.model": "qwen3-coder:30b"
+  "llamit.model": "qwen3-coder:30b",
+  "llamit.commitFormat": "conventional",
+  "llamit.customFormat": ""
 }
 ```
 
@@ -95,6 +97,70 @@ You can customize Llamit in VS Code settings:
 
 - **`llamit.ollamaUrl`**: The Ollama API endpoint URL (default: `http://localhost:11434/api/generate`)
 - **`llamit.model`**: The model to use for generation (default: `qwen3-coder:30b`)
+- **`llamit.commitFormat`**: The commit message format to use (default: `conventional`)
+  - Available formats: `conventional`, `angular`, `gitmoji`, `karma`, `semantic`, `google`, `custom`
+- **`llamit.customFormat`**: Custom format template (only used when `commitFormat` is set to `custom`)
+
+### Commit Message Formats
+
+Llamit supports multiple commit message formats to match your team's conventions:
+
+#### Conventional Commits (Default)
+```
+feat(auth): add user login functionality
+
+Implements OAuth2 authentication flow
+```
+
+#### Angular
+```
+feat(core): implement user authentication
+
+- Add login service
+- Add auth guard
+- Update routing
+
+Closes #123
+```
+
+#### Gitmoji
+```
+✨ feat(api): add new endpoint for user profiles
+
+Implements GET /api/users/:id endpoint
+```
+
+#### Karma
+```
+feat(ui): add dark mode toggle
+
+Implements theme switching functionality
+```
+
+#### Semantic
+```
+feat: implement user authentication system
+
+Complete OAuth2 integration with JWT tokens
+```
+
+#### Google
+```
+Add user authentication system
+
+Implements a complete authentication flow using OAuth2 and JWT tokens.
+Includes login, logout, and token refresh functionality.
+```
+
+#### Custom Format
+Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.customFormat`:
+
+```json
+{
+  "llamit.commitFormat": "custom",
+  "llamit.customFormat": "Generate a simple commit message:\n<action>: <description>\n\nRules:\n1. Keep it under 50 characters\n2. Use imperative mood"
+}
+```
 
 ### Recommended Models
 

@@ -46,23 +46,31 @@ suite('Helper Functions', () => {
         test('should enforce correct structure', () => {
             const config: LlamitConfig = {
                 ollamaUrl: 'http://localhost:11434/api/generate',
-                model: 'qwen3-coder:30b'
+                model: 'qwen3-coder:30b',
+                commitFormat: 'conventional',
+                customFormat: ''
             };
 
             assert.ok(config.ollamaUrl);
             assert.ok(config.model);
             assert.strictEqual(typeof config.ollamaUrl, 'string');
             assert.strictEqual(typeof config.model, 'string');
+            assert.strictEqual(typeof config.commitFormat, 'string');
+            assert.strictEqual(typeof config.customFormat, 'string');
         });
 
         test('should accept custom values', () => {
             const config: LlamitConfig = {
                 ollamaUrl: 'https://custom-ollama.example.com/api/generate',
-                model: 'llama2:13b'
+                model: 'llama2:13b',
+                commitFormat: 'gitmoji',
+                customFormat: 'My custom template'
             };
 
             assert.strictEqual(config.ollamaUrl, 'https://custom-ollama.example.com/api/generate');
             assert.strictEqual(config.model, 'llama2:13b');
+            assert.strictEqual(config.commitFormat, 'gitmoji');
+            assert.strictEqual(config.customFormat, 'My custom template');
         });
     });
 });

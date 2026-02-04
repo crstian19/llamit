@@ -54,12 +54,12 @@ index 1234567..abcdefg 100644
 `
 	stdin := strings.NewReader(sampleDiff)
 	stdout := new(bytes.Buffer)
-	
+
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, ollamaURL, model)
+		err = run(stdin, stdout, ollamaURL, model, "conventional", "")
 	}, t)
-	
+
 	if err != nil {
 		t.Fatalf("run() returned an unexpected error: %v", err)
 	}
@@ -84,9 +84,9 @@ func TestRun_EmptyInput(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, "dummy-url", "dummy-model")
+		err = run(stdin, stdout, "dummy-url", "dummy-model", "conventional", "")
 	}, t)
-	
+
 	if !errors.Is(err, ErrEmptyInput) {
 		t.Errorf("Expected error %v, got %v", ErrEmptyInput, err)
 	}
@@ -105,7 +105,7 @@ func TestRun_BadURL(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, badURL, "dummy-model")
+		err = run(stdin, stdout, badURL, "dummy-model", "conventional", "")
 	}, t)
 
 	if err == nil {
@@ -125,7 +125,7 @@ func TestRun_RetrySuccess(t *testing.T) {
 	// Simulate 2 failures then 1 success
 	failCount := 2
 	requestCounter := 0
-	
+
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCounter++
 		if requestCounter <= failCount {
@@ -144,7 +144,7 @@ func TestRun_RetrySuccess(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model")
+		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
 	}, t)
 
 	if err != nil {
@@ -176,7 +176,7 @@ func TestRun_RetryFailure(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model")
+		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
 	}, t)
 
 	if err == nil {
@@ -210,7 +210,7 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model")
+		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
 	}, t)
 
 	if err == nil {
@@ -228,4 +228,32 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 		t.Error("Did not expect log output to contain retry messages for client error")
 	}
 	t.Logf("Log output for NoRetryOnClientError:\n%s", logOutput)
+}
+
+func TestGetFormatTemplate(t *testing.T) {
+	tests := []struct {
+		name           string
+		format         string
+		customTemplate string
+		wantContains   string
+	}{
+		{"default", "", "", "Conventional Commits"},
+		{"angular", "angular", "", "Angular"},
+		{"gitmoji", "gitmoji", "", "Gitmoji"},
+		{"karma", "karma", "", "Karma"},
+		{"semantic", "semantic", "", "Semantic"},
+		{"google", "google", "", "Google"},
+		{"custom_provided", "custom", "My Custom Template", "My Custom Template"},
+		{"custom_empty", "custom", "", "Conventional Commits"},
+		{"invalid", "unknown", "", "Conventional Commits"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := getFormatTemplate(tt.format, tt.customTemplate)
+			if !strings.Contains(got, tt.wantContains) {
+				t.Errorf("getFormatTemplate(%q, %q) = %q, want it to contain %q", tt.format, tt.customTemplate, got, tt.wantContains)
+			}
+		})
+	}
 }
