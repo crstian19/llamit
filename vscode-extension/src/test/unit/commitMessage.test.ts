@@ -6,7 +6,7 @@ suite('Commit Message Generation Tests', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
             ollamaUrl: 'http://localhost:11434/api/generate',
-            model: 'qwen3-coder:30b',
+            model: 'qwen2.5-coder:7b',
             commitFormat: 'conventional',
             customFormat: ''
         };

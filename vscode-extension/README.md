@@ -29,7 +29,7 @@
 ## Prerequisites
 
 - [Ollama](https://ollama.ai/) installed and running locally
-- A compatible model (default: `qwen3-coder:30b`, but any model works)
+- A compatible model (default: `qwen2.5-coder:7b`, but any model works)
 - VS Code 1.85.0 or higher
 
 ## Installation
@@ -87,7 +87,7 @@ You can customize Llamit in VS Code settings:
 ```json
 {
   "llamit.ollamaUrl": "http://localhost:11434/api/generate",
-  "llamit.model": "qwen3-coder:30b",
+  "llamit.model": "qwen2.5-coder:7b",
   "llamit.commitFormat": "conventional",
   "llamit.customFormat": ""
 }
@@ -96,7 +96,7 @@ You can customize Llamit in VS Code settings:
 ### Settings
 
 - **`llamit.ollamaUrl`**: The Ollama API endpoint URL (default: `http://localhost:11434/api/generate`)
-- **`llamit.model`**: The model to use for generation (default: `qwen3-coder:30b`)
+- **`llamit.model`**: The model to use for generation (default: `qwen2.5-coder:7b`)
 - **`llamit.commitFormat`**: The commit message format to use (default: `conventional`)
   - Available formats: `conventional`, `angular`, `gitmoji`, `karma`, `semantic`, `google`, `custom`
 - **`llamit.customFormat`**: Custom format template (only used when `commitFormat` is set to `custom`)
@@ -165,9 +165,9 @@ Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.c
 ### Recommended Models
 
 Any Ollama model works, but these are optimized for code:
-- `qwen3-coder:30b` - Best quality (default)
-- `qwen3-coder:7b` - Faster, lighter
-- `codellama:13b` - Good balance
+- `qwen2.5-coder:7b` - Great balance of quality and speed (default)
+- `qwen2.5-coder:14b` - Better quality, slower
+- `codellama:13b` - Good alternative
 - `deepseek-coder:6.7b` - Fast and efficient
 
 ## Architecture

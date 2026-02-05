@@ -33,7 +33,7 @@ export function getConfiguration(): LlamitConfig {
     const config = vscode.workspace.getConfiguration('llamit');
     return {
         ollamaUrl: config.get<string>('ollamaUrl') || 'http://localhost:11434/api/generate',
-        model: config.get<string>('model') || 'qwen3-coder:30b',
+        model: config.get<string>('model') || 'qwen2.5-coder:7b',
         commitFormat: config.get<string>('commitFormat') || 'conventional',
         customFormat: config.get<string>('customFormat') || ''
     };

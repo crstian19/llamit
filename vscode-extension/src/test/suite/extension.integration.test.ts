@@ -30,7 +30,7 @@ suite('Extension Integration Tests', () => {
         const customFormat = config.get<string>('customFormat');
 
         assert.strictEqual(ollamaUrl, 'http://localhost:11434/api/generate');
-        assert.strictEqual(model, 'qwen3-coder:30b');
+        assert.strictEqual(model, 'qwen2.5-coder:7b');
         assert.strictEqual(commitFormat, 'conventional');
         assert.strictEqual(customFormat, '');
     });

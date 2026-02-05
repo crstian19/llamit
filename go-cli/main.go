@@ -308,7 +308,7 @@ func cleanResponse(s string) string {
 func main() {
 	// --- Configuration ---
 	ollamaURL := flag.String("ollama-url", "http://localhost:11434/api/generate", "Ollama API URL")
-	model := flag.String("model", "qwen3-coder:30b", "Ollama model to use")
+	model := flag.String("model", "qwen2.5-coder:7b", "Ollama model to use")
 	format := flag.String("format", "conventional", "Commit message format (conventional, angular, gitmoji, karma, semantic, google, custom)")
 	customTemplate := flag.String("custom-template", "", "Custom format template (only used when format is 'custom')")
 	version := flag.Bool("version", false, "Print version and exit")

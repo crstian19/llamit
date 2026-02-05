@@ -37,7 +37,7 @@ func TestRun_IntegrationSuccess(t *testing.T) {
 	// Set your Ollama endpoint and model here to run integration tests
 	// Example: ollamaURL := "http://localhost:11434/api/generate"
 	ollamaURL := "http://localhost:11434/api/generate"
-	model := "qwen3-coder:30b"
+	model := "qwen2.5-coder:7b"
 
 	// A sample git diff to send
 	sampleDiff := `diff --git a/main.go b/main.go
