@@ -117,13 +117,6 @@ jobs:
           echo "📦 Downloaded artifacts:"
           ls -lh dist/
 
-      - name: Create Git tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ needs.check-version.outputs.version }}" -m "Release v${{ needs.check-version.outputs.version }}"
-          git push origin "v${{ needs.check-version.outputs.version }}"
-
       - name: Generate changelog
         id: changelog
         run: |
@@ -143,10 +136,11 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.check-version.outputs.version }}
           name: v${{ needs.check-version.outputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             # Llamit v${{ needs.check-version.outputs.version }}
 
@@ -178,8 +172,6 @@ jobs:
           files: dist/*.vsix
           draft: false
           prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-marketplaces:
     needs: [check-version, create-release]
