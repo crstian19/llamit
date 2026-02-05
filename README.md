@@ -5,6 +5,7 @@
 <img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200"/>
 
 ![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
+![Build Status](https://img.shields.io/github/actions/workflow/status/crstian19/llamit/publish.yml?style=for-the-badge&logo=githubactions&logoColor=white&label=Build)
 ![VS Code Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=VS%20Code%20Marketplace)
 ![Open VSX Downloads](https://img.shields.io/open-vsx/dt/Crstian/llamit?style=for-the-badge&logo=vscodium&logoColor=white&label=Open%20VSX&color=blueviolet)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
@@ -243,6 +244,17 @@ Contributions are welcome! This project was vibecoded, but that doesn't mean it 
 3. Commit your changes: `git commit -m 'feat: add amazing feature'`
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+## Releases
+
+Llamit uses automated CI/CD for releases:
+- ✅ Automatic releases on merge to `main`
+- 📦 Platform-specific packaging (6 platforms)
+- 🚀 Automatic publishing to VS Code Marketplace and Open VSX
+
+For maintainers: See [.github/RELEASE.md](.github/RELEASE.md) for detailed release process documentation.
 
 ## License
 

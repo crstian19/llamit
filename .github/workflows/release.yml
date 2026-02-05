@@ -1,3 +1,10 @@
+# Manual Release Workflow
+#
+# This workflow is triggered when a GitHub release is manually created.
+# It serves as a fallback mechanism for manual releases.
+#
+# For automatic releases on merge to main, see: publish.yml
+#
 name: Release Extension
 
 on:
