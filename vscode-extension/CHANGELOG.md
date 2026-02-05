@@ -5,6 +5,27 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-05
+
+### Added
+- **Platform-Specific Packaging**: Extension now distributed as separate packages for each platform
+- Support for Windows ARM64 architecture
+- Automated packaging scripts (`npm run package:all`, `npm run publish:all`)
+- GitHub Actions workflow for automated releases
+- Platform-specific build optimization with `VSCE_TARGET` environment variable
+
+### Changed
+- **Breaking**: Distribution method changed from universal package to platform-specific packages
+- Each platform now gets a dedicated `.vsix` file (win32-x64, win32-arm64, linux-x64, linux-arm64, darwin-x64, darwin-arm64)
+- VS Code automatically selects the correct package for user's platform
+- Improved build script to support targeted platform compilation
+
+### Technical Details
+- Package size: ~16.5 MB per platform (includes all binaries due to vsce limitations)
+- Runtime platform detection remains unchanged and fully functional
+- All 6 platforms supported: Windows (x64, ARM64), Linux (x64, ARM64), macOS (Intel, Apple Silicon)
+- Follows VS Code's recommended distribution pattern for native binaries
+
 ## [0.2.2] - 2026-02-04
 
 ### Added

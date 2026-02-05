@@ -2,7 +2,7 @@
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
     "description": "Generate semantic commit messages using your local Ollama LLM instance. Fast, secure, and fully local.",
-    "version": "0.2.2",
+    "version": "0.3.0",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
@@ -115,13 +115,15 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "node scripts/build-go.js && npm run compile",
+        "vscode:prepublish": "VSCE_TARGET=\"$VSCE_TARGET\" node scripts/build-go.js && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
         "test": "node ./out/test/runTests.js",
         "test:unit": "mocha --ui tdd --require ts-node/register 'src/test/unit/**/*.test.ts'",
-        "package": "vsce package"
+        "package": "vsce package",
+        "package:all": "bash scripts/package-all-platforms.sh",
+        "publish:all": "bash scripts/publish-all-platforms.sh"
     },
     "devDependencies": {
         "@types/vscode": "^1.85.0",
