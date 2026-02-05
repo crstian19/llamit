@@ -5,7 +5,7 @@
 <img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200"/>
 
 ![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
-![Azure DevOps Installs](https://img.shields.io/visual-studio-marketplace/azure-devops/installs/total/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
+![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
 ![Go Version](https://img.shields.io/badge/Go-1.25.6-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-powered-black?style=for-the-badge&logo=ollama&logoColor=white)

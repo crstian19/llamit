@@ -2,11 +2,12 @@
 
 # Llamit - AI-Powered Commit Messages
 
-<img src="https://cdn.crstian.me/llamit.png" alt="Llamit Logo" width="200"/>
+<img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200"/>
 
 ![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
-![VS Code Installs](https://img.shields.io/visual-studio-marketplace/v/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
+![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=installs)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
+![Go Version](https://img.shields.io/badge/Go-1.25.6-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![Ollama](https://img.shields.io/badge/Ollama-powered-black?style=for-the-badge&logo=ollama&logoColor=white)
 
 > ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
@@ -21,7 +22,7 @@
 
 - 🚀 **Generate commit messages instantly** from staged changes
 - 🔒 **Fully local** - uses your own Ollama instance
-- 📝 **Conventional Commits** - follows standard commit message format (and many others!)
+- 📝 **Conventional Commits** - follows standard commit message format
 - ⚡ **Fast** - powered by a lightweight Go CLI
 - 🎨 **VS Code integration** - seamless SCM toolbar button
 
@@ -30,6 +31,35 @@
 - [Ollama](https://ollama.ai/) installed and running locally
 - A compatible model (default: `qwen3-coder:30b`, but any model works)
 - VS Code 1.85.0 or higher
+
+## Installation
+
+### Option 1: From VS Code Marketplace (Recommended)
+1. Open VS Code
+2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+3. Search for "Llamit"
+4. Click **Install**
+
+### Option 2: Build from Source
+```bash
+# Clone the repository
+git clone https://github.com/crstian19/llamit.git
+cd llamit
+
+# Build the Go CLI
+cd go-cli
+go build -o cli main.go
+
+# Build the VS Code extension
+cd ../vscode-extension
+npm install
+npm run compile
+
+# Package the extension
+npx vsce package
+# Install the generated .vsix file in VS Code
+```
+```
 
 ## Usage
 
@@ -82,6 +112,17 @@ feat(auth): add user login functionality
 Implements OAuth2 authentication flow
 ```
 
+#### Angular
+```
+feat(core): implement user authentication
+
+- Add login service
+- Add auth guard
+- Update routing
+
+Closes #123
+```
+
 #### Gitmoji
 ```
 ✨ feat(api): add new endpoint for user profiles
@@ -89,52 +130,142 @@ Implements OAuth2 authentication flow
 Implements GET /api/users/:id endpoint
 ```
 
+#### Karma
+```
+feat(ui): add dark mode toggle
+
+Implements theme switching functionality
+```
+
+#### Semantic
+```
+feat: implement user authentication system
+
+Complete OAuth2 integration with JWT tokens
+```
+
+#### Google
+```
+Add user authentication system
+
+Implements a complete authentication flow using OAuth2 and JWT tokens.
+Includes login, logout, and token refresh functionality.
+```
+
 #### Custom Format
-Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.customFormat`.
+Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.customFormat`:
 
-## Extension Settings
+```json
+{
+  "llamit.commitFormat": "custom",
+  "llamit.customFormat": "Generate a simple commit message:\n<action>: <description>\n\nRules:\n1. Keep it under 50 characters\n2. Use imperative mood"
+}
+```
 
-This extension contributes the following settings:
+### Recommended Models
 
-* `llamit.ollamaUrl`: URL of the Ollama generation API.
-* `llamit.model`: Name of the Ollama model to use.
-* `llamit.commitFormat`: Format of the generated commit message.
-* `llamit.customFormat`: Custom template for the commit message.
+Any Ollama model works, but these are optimized for code:
+- `qwen3-coder:30b` - Best quality (default)
+- `qwen3-coder:7b` - Faster, lighter
+- `codellama:13b` - Good balance
+- `deepseek-coder:6.7b` - Fast and efficient
 
-## How It Works
+## Architecture
 
 Llamit consists of two components:
-1. **Go CLI**: A fast, standalone binary that processes diffs and talks to Ollama.
-2. **VS Code Extension**: A lightweight TypeScript bridge that integrates with the VS Code SCM view.
 
-Everything runs on your machine. Your code never leaves your local environment.
+### 1. Go CLI (`go-cli/`)
+A standalone command-line tool that:
+- Reads git diffs from stdin
+- Sends them to Ollama with a prompt template
+- Returns a formatted commit message
+- Implements retry logic with exponential backoff
+- Handles errors gracefully
+
+### 2. VS Code Extension (`vscode-extension/`)
+A TypeScript extension that:
+- Integrates with VS Code's Source Control view
+- Executes `git diff --cached` to get staged changes
+- Spawns the Go CLI as a subprocess
+- Populates the commit message box with the result
+
+## Development
+
+### Running Tests
+
+**Go CLI:**
+```bash
+cd go-cli
+go test -v              # All tests
+go test -v -short       # Unit tests only (skip integration)
+```
+
+**VS Code Extension:**
+```bash
+cd vscode-extension
+npm run test:unit       # Fast unit tests
+npm test               # Full integration tests
+```
+
+### File Structure
+
+```
+llamit/
+├── go-cli/              # Go CLI binary
+│   ├── main.go          # Core logic
+│   ├── main_test.go     # Comprehensive tests
+│   └── go.mod           # Go module file
+├── vscode-extension/    # VS Code extension
+│   ├── src/
+│   │   ├── extension.ts # Extension entry point
+│   │   └── test/        # Unit and integration tests
+│   ├── package.json     # Extension manifest
+│   └── tsconfig.json    # TypeScript config
+└── CLAUDE.md           # AI assistant documentation
+```
+
+## Testing
+
+Both components have comprehensive test coverage:
+
+- **Go CLI**: 6 test cases covering success, errors, retries, and integration
+- **VS Code Extension**: Unit tests + integration tests for all core functions
+
+See [CLAUDE.md](./CLAUDE.md) for detailed testing information.
+
+## Contributing
+
+Contributions are welcome! This project was vibecoded, but that doesn't mean it can't be improved by humans too 😊
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'feat: add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## Acknowledgments
+
+- Built with [Claude](https://claude.ai) - AI pair programming at its finest
+- Powered by [Ollama](https://ollama.ai) - local LLM runtime
+- Inspired by the need for better commit messages everywhere
 
 ## Release Notes
 
-## [0.2.2] - 2026-02-04
-
-### Added
-- **Configurable Formats**: Support for 6 predefined styles (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
-- **Custom Format Templates**: New setting `llamit.customFormat` for user-defined prompts
-- **Advanced Post-processing**: Automated stripping of markdown backticks and artifacts from LLM output
-- **Optimized Prompts**: Enhanced system instructions for precise, one-line commit messages
-- **Marketplace Branding**: High-fidelity badges, refreshed logo, and professional description
-
-### Changed
-- Integrated Go CLI build process into extension packaging (`npm run package`)
-- Improved retry logic for better resilience against transient Ollama errors
-- Updated extension settings with descriptive enums and multi-line custom editor
-
-### Fixed
-- Outdated binary builds in extension packages
-- Marker artifacts (```) appearing in commit messages
-- Extension ID mapping in integration tests
+### 0.2.2
+- **Configurable Formats**: Added 6 predefined templates (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
+- **Custom Templates**: Support for user-defined commit message formats
+- **Optimized Prompts**: Refined instructions for maximum conciseness and brevity
+- **Markdown Cleanup**: Automatic removal of backticks and code blocks from LLM output
+- **Automation**: Integrated Go CLI build into the extension lifecycle
+- **UI improvements**: High-fidelity badges and CDN-based logo
 
 ### 0.1.0
-- Initial release with Conventional Commits support
+- Initial release with local Ollama integration
 
 ---
 
 **Made with 🤖 and ✨ through vibecoding**
-
-[GitHub Repository](https://github.com/crstian19/llamit)
