@@ -115,12 +115,12 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "cd ../go-cli && go build -o cli main.go && cd ../vscode-extension && npm run compile",
+        "vscode:prepublish": "node scripts/build-go.js && npm run compile",
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
         "test": "node ./out/test/runTests.js",
-        "test:unit": "mocha --require ts-node/register 'src/test/unit/**/*.test.ts'",
+        "test:unit": "mocha --ui tdd --require ts-node/register 'src/test/unit/**/*.test.ts'",
         "package": "vsce package"
     },
     "devDependencies": {

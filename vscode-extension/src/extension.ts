@@ -1,19 +1,7 @@
 import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
-
-// Types for better testability
-export interface LlamitConfig {
-    ollamaUrl: string;
-    model: string;
-    commitFormat: string;
-    customFormat: string;
-}
-
-export interface GitDiffResult {
-    diff: string;
-    isEmpty: boolean;
-}
+import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiff } from './helpers';
 
 // Helper to get the Git API from the built-in VS Code extension
 export async function getGitAPI() {
@@ -37,67 +25,6 @@ export function getConfiguration(): LlamitConfig {
         commitFormat: config.get<string>('commitFormat') || 'conventional',
         customFormat: config.get<string>('customFormat') || ''
     };
-}
-
-// Get the binary path for the current platform
-export function getBinaryPath(extensionPath: string): string {
-    const binaryName = process.platform === 'win32' ? 'cli.exe' : 'cli';
-    return path.join(extensionPath, 'go-cli', binaryName);
-}
-
-// Execute git diff --cached to get staged changes
-export function getGitDiff(gitPath: string, repositoryRoot: string): Promise<GitDiffResult> {
-    return new Promise<GitDiffResult>((resolve, reject) => {
-        execFile(gitPath, ['diff', '--cached'], { cwd: repositoryRoot }, (error, stdout, stderr) => {
-            if (error) {
-                // It's not a true error if stdout is empty, just means no staged changes.
-                if (stdout.trim() === '') {
-                    resolve({ diff: '', isEmpty: true });
-                    return;
-                }
-                reject(new Error(stderr || error.message));
-                return;
-            }
-            resolve({ diff: stdout, isEmpty: stdout.trim() === '' });
-        });
-    });
-}
-
-// Execute the Llamit CLI binary to generate commit message
-export function generateCommitMessage(
-    binaryPath: string,
-    config: LlamitConfig,
-    diff: string
-): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
-        const args = [
-            '-ollama-url', config.ollamaUrl,
-            '-model', config.model,
-            '-format', config.commitFormat
-        ];
-
-        // Add custom template if format is 'custom' and template is provided
-        if (config.commitFormat === 'custom' && config.customFormat) {
-            args.push('-custom-template', config.customFormat);
-        }
-
-        const child = execFile(
-            binaryPath,
-            args,
-            (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`execFile error for llamit cli: ${error.message}`);
-                    reject(new Error(stderr || error.message));
-                    return;
-                }
-                resolve(stdout.trim());
-            }
-        );
-
-        // Write the diff to the binary's stdin
-        child.stdin?.write(diff);
-        child.stdin?.end();
-    });
 }
 
 export function activate(context: vscode.ExtensionContext) {

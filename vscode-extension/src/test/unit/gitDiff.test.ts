@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { getGitDiff, GitDiffResult } from '../../extension';
+import { getGitDiff, GitDiffResult } from '../../helpers';
 
 suite('Git Diff Tests', () => {
     let sandbox: sinon.SinonSandbox;
