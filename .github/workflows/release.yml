@@ -1,0 +1,94 @@
+# Manual Release Workflow
+#
+# This workflow is triggered when a GitHub release is manually created.
+# It serves as a fallback mechanism for manual releases.
+#
+# For automatic releases on merge to main, see: publish.yml
+#
+name: Release Extension
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - win32-x64
+          - win32-arm64
+          - linux-x64
+          - linux-arm64
+          - darwin-x64
+          - darwin-arm64
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Install dependencies
+        run: cd vscode-extension && npm ci
+
+      - name: Build binaries
+        run: cd vscode-extension && npm run vscode:prepublish
+
+      - name: Package extension
+        run: |
+          cd vscode-extension
+          npx vsce package --target ${{ matrix.target }} \
+            -o ../dist/llamit-${{ github.event.release.tag_name }}-${{ matrix.target }}.vsix
+
+      - name: Upload to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: dist/llamit-${{ github.event.release.tag_name }}-${{ matrix.target }}.vsix
+          asset_name: llamit-${{ github.event.release.tag_name }}-${{ matrix.target }}.vsix
+          asset_content_type: application/zip
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Publish to Open VSX
+        if: env.OPENVSX_TOKEN != ''
+        env:
+          OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}
+        run: |
+          cd vscode-extension
+          for vsix in ../dist/*.vsix; do
+            npx ovsx publish "$vsix" -p "$OPENVSX_TOKEN"
+          done
+
+      - name: Publish to Visual Studio Marketplace
+        if: env.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          cd vscode-extension
+          for vsix in ../dist/*.vsix; do
+            npx vsce publish --packagePath "$vsix" -p "$VSCE_PAT"
+          done

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { generateCommitMessage, LlamitConfig } from '../../extension';
+import { generateCommitMessage, LlamitConfig } from '../../helpers';
 
 suite('Commit Message Generation Tests', () => {
     test('generateCommitMessage should accept correct parameters', () => {

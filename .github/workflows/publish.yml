@@ -1,0 +1,240 @@
+name: Publish Extension on Main Merge
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      should_release: ${{ steps.check-tag.outputs.should_release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to check for existing tags
+
+      - name: Get version from package.json
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./vscode-extension/package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Version detected: $VERSION"
+
+      - name: Check if tag already exists
+        id: check-tag
+        run: |
+          VERSION="${{ steps.get-version.outputs.version }}"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "⚠️  Tag v$VERSION already exists. Skipping release."
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          else
+            echo "✅ Tag v$VERSION does not exist. Proceeding with release."
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          fi
+
+  build-and-package:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - win32-x64
+          - win32-arm64
+          - linux-x64
+          - linux-arm64
+          - darwin-x64
+          - darwin-arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install dependencies
+        run: |
+          cd vscode-extension
+          npm ci
+
+      - name: Build Go binary for ${{ matrix.target }}
+        run: |
+          cd vscode-extension
+          VSCE_TARGET=${{ matrix.target }} node scripts/build-go.js
+
+      - name: Compile TypeScript
+        run: |
+          cd vscode-extension
+          npm run compile
+
+      - name: Package extension for ${{ matrix.target }}
+        run: |
+          cd vscode-extension
+          mkdir -p ../dist
+          npx @vscode/vsce package --target ${{ matrix.target }} -o ../dist/llamit-v${{ needs.check-version.outputs.version }}-${{ matrix.target }}.vsix
+          echo "✅ Packaged: llamit-v${{ needs.check-version.outputs.version }}-${{ matrix.target }}.vsix"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-${{ matrix.target }}
+          path: dist/*.vsix
+          retention-days: 7
+
+  create-release:
+    needs: [check-version, build-and-package]
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: vsix-*
+          merge-multiple: true
+
+      - name: List artifacts
+        run: |
+          echo "📦 Downloaded artifacts:"
+          ls -lh dist/
+
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ needs.check-version.outputs.version }}" -m "Release v${{ needs.check-version.outputs.version }}"
+          git push origin "v${{ needs.check-version.outputs.version }}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          if [ -f vscode-extension/CHANGELOG.md ]; then
+            # Extract changelog for current version
+            CHANGELOG=$(sed -n "/## \[${VERSION}\]/,/## \[/p" vscode-extension/CHANGELOG.md | sed '$d' | tail -n +2)
+            if [ -z "$CHANGELOG" ]; then
+              CHANGELOG="See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/vscode-extension/CHANGELOG.md) for details."
+            fi
+          else
+            CHANGELOG="Release version ${VERSION}"
+          fi
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.check-version.outputs.version }}
+          name: v${{ needs.check-version.outputs.version }}
+          body: |
+            # Llamit v${{ needs.check-version.outputs.version }}
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Platform-Specific Downloads
+
+            Download the appropriate `.vsix` file for your platform:
+            - **Windows (x64)**: `llamit-v${{ needs.check-version.outputs.version }}-win32-x64.vsix`
+            - **Windows (ARM64)**: `llamit-v${{ needs.check-version.outputs.version }}-win32-arm64.vsix`
+            - **Linux (x64)**: `llamit-v${{ needs.check-version.outputs.version }}-linux-x64.vsix`
+            - **Linux (ARM64)**: `llamit-v${{ needs.check-version.outputs.version }}-linux-arm64.vsix`
+            - **macOS (Intel)**: `llamit-v${{ needs.check-version.outputs.version }}-darwin-x64.vsix`
+            - **macOS (Apple Silicon)**: `llamit-v${{ needs.check-version.outputs.version }}-darwin-arm64.vsix`
+
+            ## Installation
+
+            VS Code will automatically download the correct platform package from the marketplace. For manual installation:
+
+            ```bash
+            code --install-extension llamit-v${{ needs.check-version.outputs.version }}-<your-platform>.vsix
+            ```
+
+            ## Links
+
+            - [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Crstian.llamit)
+            - [Open VSX Registry](https://open-vsx.org/extension/Crstian/llamit)
+            - [Changelog](https://github.com/${{ github.repository }}/blob/main/vscode-extension/CHANGELOG.md)
+          files: dist/*.vsix
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-marketplaces:
+    needs: [check-version, create-release]
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: vsix-*
+          merge-multiple: true
+
+      - name: List artifacts
+        run: |
+          echo "📦 Artifacts to publish:"
+          ls -lh dist/
+
+      - name: Publish to Open VSX Registry
+        if: env.OPENVSX_TOKEN != ''
+        run: |
+          npm install -g ovsx
+          for vsix in dist/*.vsix; do
+            echo "📤 Publishing $(basename $vsix) to Open VSX..."
+            ovsx publish "$vsix" -p "$OPENVSX_TOKEN" || echo "⚠️  Failed to publish $(basename $vsix) to Open VSX"
+          done
+        env:
+          OPENVSX_TOKEN: ${{ secrets.OPENVSX_TOKEN }}
+
+      - name: Publish to VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        run: |
+          npm install -g @vscode/vsce
+          for vsix in dist/*.vsix; do
+            echo "📤 Publishing $(basename $vsix) to VS Code Marketplace..."
+            vsce publish --packagePath "$vsix" -p "$VSCE_PAT" || echo "⚠️  Failed to publish $(basename $vsix) to VS Code Marketplace"
+          done
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publication summary
+        run: |
+          echo "## 📊 Publication Summary"
+          echo ""
+          if [ -n "${{ secrets.OPENVSX_TOKEN }}" ]; then
+            echo "✅ Open VSX Registry: Published"
+          else
+            echo "⚠️  Open VSX Registry: Skipped (no OPENVSX_TOKEN configured)"
+          fi
+          if [ -n "${{ secrets.VSCE_PAT }}" ]; then
+            echo "✅ VS Code Marketplace: Published"
+          else
+            echo "⚠️  VS Code Marketplace: Skipped (no VSCE_PAT configured)"
+          fi
