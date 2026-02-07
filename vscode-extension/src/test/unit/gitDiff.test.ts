@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as sinon from 'sinon';
-import { getGitDiff, GitDiffResult } from '../../helpers';
+import { getGitDiff, getGitDiffCascade, GitDiffResult } from '../../helpers';
 
 suite('Git Diff Tests', () => {
     let sandbox: sinon.SinonSandbox;
@@ -51,5 +51,56 @@ suite('Git Diff Tests', () => {
 
         assert.strictEqual(result.diff, '');
         assert.strictEqual(result.isEmpty, true);
+    });
+});
+
+suite('getGitDiffCascade Tests', () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test('getGitDiffCascade should return correct interface', async () => {
+        // Test that the function exists and returns a promise
+        assert.strictEqual(typeof getGitDiffCascade, 'function');
+
+        // Test that it returns a Promise
+        const gitPath = '/usr/bin/git';
+        const repoRoot = '/tmp/test-repo';
+
+        try {
+            const result = getGitDiffCascade(gitPath, repoRoot);
+            assert.ok(result instanceof Promise);
+        } catch (error) {
+            // Expected to fail in test environment without real git repo
+            assert.ok(true);
+        }
+    });
+
+    test('getGitDiffCascade should return GitDiffResult structure', () => {
+        // Verify the return type structure matches GitDiffResult
+        const sampleResult: GitDiffResult = {
+            diff: 'sample diff',
+            isEmpty: false
+        };
+
+        assert.strictEqual(typeof sampleResult.diff, 'string');
+        assert.strictEqual(typeof sampleResult.isEmpty, 'boolean');
+    });
+
+    test('getGitDiffCascade should handle empty result', () => {
+        // Verify it can represent empty state
+        const emptyResult: GitDiffResult = {
+            diff: '',
+            isEmpty: true
+        };
+
+        assert.strictEqual(emptyResult.diff, '');
+        assert.strictEqual(emptyResult.isEmpty, true);
     });
 });

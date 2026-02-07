@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
-import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiff } from './helpers';
+import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade } from './helpers';
 
 // Helper to get the Git API from the built-in VS Code extension
 export async function getGitAPI() {
@@ -47,13 +47,13 @@ export function activate(context: vscode.ExtensionContext) {
             title: 'Llamit: Generating commit message...',
         }, async () => {
             try {
-                // 1. Get the staged diff
+                // 1. Get the git diff (staged changes with fallback to working directory)
                 const gitPath = git.git.path;
                 const repositoryRoot = repo.rootUri.fsPath;
-                const diffResult = await getGitDiff(gitPath, repositoryRoot);
+                const diffResult = await getGitDiffCascade(gitPath, repositoryRoot);
 
                 if (diffResult.isEmpty) {
-                    vscode.window.showInformationMessage('No staged changes to commit.');
+                    vscode.window.showInformationMessage('No changes to commit.');
                     return;
                 }
 

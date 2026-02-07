@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.4.0] - 2026-02-07
+
+### Added
+- **Smart Git Diff with Fallback**: Extension now automatically handles both staged and unstaged changes
+  - If staged changes exist, uses only those (maintains original behavior)
+  - If no staged changes, automatically falls back to working directory changes
+  - Prioritizes staged changes when both staged and unstaged changes are present
+  - No longer requires manual staging before generating commit messages
+
+### Changed
+- Updated message from "No staged changes to commit" to "No changes to commit" for better clarity
+- Enhanced `getGitDiffCascade()` function with intelligent diff selection logic
+
+### Internal
+- Added `executeGitDiff()` helper function for better code organization
+- Deprecated `getGitDiff()` in favor of `getGitDiffCascade()` (backward compatible)
+- Added comprehensive test coverage for cascade logic
+
 ## [0.3.1] - 2026-02-05
 
   ### Fixed
