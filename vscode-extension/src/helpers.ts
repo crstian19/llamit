@@ -46,7 +46,68 @@ export function getBinaryPath(extensionPath: string): string {
     return binaryPath;
 }
 
-// Execute git diff --cached to get staged changes
+// Helper function to execute git diff commands
+function executeGitDiff(
+    gitPath: string,
+    repositoryRoot: string,
+    args: string[]
+): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+        execFile(gitPath, args, { cwd: repositoryRoot }, (error, stdout, stderr) => {
+            if (error && !stdout) {
+                reject(new Error(stderr || error.message));
+                return;
+            }
+            resolve(stdout);
+        });
+    });
+}
+
+/**
+ * Gets git diff with smart fallback:
+ * 1. Try staged changes (--cached)
+ * 2. If empty, try working directory changes
+ * 3. If both empty, return isEmpty: true
+ */
+export async function getGitDiffCascade(
+    gitPath: string,
+    repositoryRoot: string
+): Promise<GitDiffResult> {
+    try {
+        // First: try staged changes
+        const stagedDiff = await executeGitDiff(
+            gitPath,
+            repositoryRoot,
+            ['diff', '--cached']
+        );
+
+        if (stagedDiff.trim() !== '') {
+            return { diff: stagedDiff, isEmpty: false };
+        }
+
+        // Second: try working directory changes
+        const workingDiff = await executeGitDiff(
+            gitPath,
+            repositoryRoot,
+            ['diff']
+        );
+
+        if (workingDiff.trim() !== '') {
+            return { diff: workingDiff, isEmpty: false };
+        }
+
+        // Both empty
+        return { diff: '', isEmpty: true };
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+/**
+ * Execute git diff --cached to get staged changes
+ * @deprecated Use getGitDiffCascade() instead for smart fallback behavior
+ */
 export function getGitDiff(gitPath: string, repositoryRoot: string): Promise<GitDiffResult> {
     return new Promise<GitDiffResult>((resolve, reject) => {
         execFile(gitPath, ['diff', '--cached'], { cwd: repositoryRoot }, (error, stdout, stderr) => {
