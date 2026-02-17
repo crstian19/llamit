@@ -23,7 +23,24 @@ export function getConfiguration(): LlamitConfig {
         ollamaUrl: config.get<string>('ollamaUrl') || 'http://localhost:11434/api/generate',
         model: config.get<string>('model') || 'qwen2.5-coder:7b',
         commitFormat: config.get<string>('commitFormat') || 'conventional',
-        customFormat: config.get<string>('customFormat') || ''
+        customFormat: config.get<string>('customFormat') || '',
+        keepAlive: config.get<string>('keepAlive'),
+        temperature: config.get<number>('temperature'),
+        topK: config.get<number>('topK'),
+        topP: config.get<number>('topP'),
+        numCtx: config.get<number>('numCtx'),
+        numPredict: config.get<number>('numPredict'),
+        repeatPenalty: config.get<number>('repeatPenalty'),
+        repeatLastN: config.get<number>('repeatLastN'),
+        seed: config.get<number>('seed'),
+        numGpu: config.get<number>('numGpu'),
+        numThread: config.get<number>('numThread'),
+        minP: config.get<number>('minP'),
+        tfsZ: config.get<number>('tfsZ'),
+        mirostat: config.get<number>('mirostat'),
+        mirostatEta: config.get<number>('mirostatEta'),
+        mirostatTau: config.get<number>('mirostatTau'),
+        stop: config.get<string>('stop')
     };
 }
 

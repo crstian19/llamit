@@ -22,7 +22,7 @@ suite('Helper Functions', () => {
 
         test('should return llamit-linux-amd64 on Linux x64', () => {
             Object.defineProperty(process, 'platform', { value: 'linux' });
-            Object.defineProperty(process, 'arch', { value: 'x64' }); // Node uses x64 for amd64
+            Object.defineProperty(process, 'arch', { value: 'x64' });
             const extensionPath = '/home/user/.vscode/extensions/llamit';
             const result = getBinaryPath(extensionPath);
 
@@ -102,6 +102,63 @@ suite('Helper Functions', () => {
             assert.strictEqual(config.model, 'llama2:13b');
             assert.strictEqual(config.commitFormat, 'gitmoji');
             assert.strictEqual(config.customFormat, 'My custom template');
+        });
+
+        test('should accept Ollama options', () => {
+            const config: LlamitConfig = {
+                ollamaUrl: 'http://localhost:11434/api/generate',
+                model: 'qwen2.5-coder:7b',
+                commitFormat: 'conventional',
+                customFormat: '',
+                keepAlive: '5m',
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.9,
+                numCtx: 4096,
+                numPredict: 512,
+                repeatPenalty: 1.2,
+                repeatLastN: 32,
+                seed: 42,
+                numGpu: 1,
+                numThread: 4,
+                minP: 0.05,
+                tfsZ: 1.0,
+                mirostat: 2,
+                mirostatEta: 0.1,
+                mirostatTau: 5.0,
+                stop: 'END,STOP'
+            };
+
+            assert.strictEqual(config.keepAlive, '5m');
+            assert.strictEqual(config.temperature, 0.7);
+            assert.strictEqual(config.topK, 40);
+            assert.strictEqual(config.topP, 0.9);
+            assert.strictEqual(config.numCtx, 4096);
+            assert.strictEqual(config.numPredict, 512);
+            assert.strictEqual(config.repeatPenalty, 1.2);
+            assert.strictEqual(config.repeatLastN, 32);
+            assert.strictEqual(config.seed, 42);
+            assert.strictEqual(config.numGpu, 1);
+            assert.strictEqual(config.numThread, 4);
+            assert.strictEqual(config.minP, 0.05);
+            assert.strictEqual(config.tfsZ, 1.0);
+            assert.strictEqual(config.mirostat, 2);
+            assert.strictEqual(config.mirostatEta, 0.1);
+            assert.strictEqual(config.mirostatTau, 5.0);
+            assert.strictEqual(config.stop, 'END,STOP');
+        });
+
+        test('should accept optional Ollama options', () => {
+            const config: LlamitConfig = {
+                ollamaUrl: 'http://localhost:11434/api/generate',
+                model: 'qwen2.5-coder:7b',
+                commitFormat: 'conventional',
+                customFormat: ''
+            };
+
+            assert.strictEqual(config.keepAlive, undefined);
+            assert.strictEqual(config.temperature, undefined);
+            assert.strictEqual(config.topK, undefined);
         });
     });
 });

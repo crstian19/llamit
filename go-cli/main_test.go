@@ -13,33 +13,26 @@ import (
 	"testing"
 )
 
-// Helper to capture log output
 func captureLog(f func(), t *testing.T) string {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
-	// Restore default logger output at the end of the test
 	defer func() {
 		log.SetOutput(os.Stderr)
-		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile) // Restore default flags too
+		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	}()
-	log.SetFlags(0) // Disable flags for easier comparison in tests
+	log.SetFlags(0)
 	f()
 	return buf.String()
 }
 
 func TestRun_IntegrationSuccess(t *testing.T) {
-	// This is an integration test that makes a real network request.
-	// It's skipped in -short mode.
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	// Set your Ollama endpoint and model here to run integration tests
-	// Example: ollamaURL := "http://localhost:11434/api/generate"
 	ollamaURL := "http://localhost:11434/api/generate"
 	model := "qwen2.5-coder:7b"
 
-	// A sample git diff to send
 	sampleDiff := `diff --git a/main.go b/main.go
 index 1234567..abcdefg 100644
 --- a/main.go
@@ -57,7 +50,11 @@ index 1234567..abcdefg 100644
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, ollamaURL, model, "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: ollamaURL,
+			model:     model,
+			format:    "conventional",
+		})
 	}, t)
 
 	if err != nil {
@@ -84,7 +81,11 @@ func TestRun_EmptyInput(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, "dummy-url", "dummy-model", "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: "dummy-url",
+			model:     "dummy-model",
+			format:    "conventional",
+		})
 	}, t)
 
 	if !errors.Is(err, ErrEmptyInput) {
@@ -100,18 +101,20 @@ func TestRun_BadURL(t *testing.T) {
 	stdin := strings.NewReader(sampleDiff)
 	stdout := new(bytes.Buffer)
 
-	// Use a non-existent port on localhost for a guaranteed connection error
 	badURL := "http://localhost:12345/api/generate"
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, badURL, "dummy-model", "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: badURL,
+			model:     "dummy-model",
+			format:    "conventional",
+		})
 	}, t)
 
 	if err == nil {
 		t.Fatal("Expected an error for a bad URL, but got nil")
 	}
-	// Expect multiple retry attempts and a final error log
 	if !strings.Contains(logOutput, "Making HTTP request to Ollama at:") {
 		t.Error("Expected log output to contain 'Making HTTP request to Ollama at:'")
 	}
@@ -122,18 +125,16 @@ func TestRun_BadURL(t *testing.T) {
 }
 
 func TestRun_RetrySuccess(t *testing.T) {
-	// Simulate 2 failures then 1 success
 	failCount := 2
 	requestCounter := 0
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCounter++
 		if requestCounter <= failCount {
-			w.WriteHeader(http.StatusInternalServerError) // Simulate a transient error (e.g., 500)
+			w.WriteHeader(http.StatusInternalServerError)
 			io.WriteString(w, `{"error": "Internal Server Error"}`)
 			return
 		}
-		// Success on the third attempt
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: A new feature from retry"})
 	}))
@@ -144,7 +145,11 @@ func TestRun_RetrySuccess(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: mockServer.URL,
+			model:     "dummy-model",
+			format:    "conventional",
+		})
 	}, t)
 
 	if err != nil {
@@ -164,7 +169,6 @@ func TestRun_RetrySuccess(t *testing.T) {
 }
 
 func TestRun_RetryFailure(t *testing.T) {
-	// Simulate always failing
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		io.WriteString(w, `{"error": "Always fails"}`)
@@ -176,7 +180,11 @@ func TestRun_RetryFailure(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: mockServer.URL,
+			model:     "dummy-model",
+			format:    "conventional",
+		})
 	}, t)
 
 	if err == nil {
@@ -200,7 +208,7 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 	requestCounter := 0
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestCounter++
-		w.WriteHeader(http.StatusBadRequest) // Simulate a client error (e.g., 400)
+		w.WriteHeader(http.StatusBadRequest)
 		io.WriteString(w, `{"error": "Bad Request"}`)
 	}))
 	defer mockServer.Close()
@@ -210,7 +218,11 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 
 	var err error
 	logOutput := captureLog(func() {
-		err = run(stdin, stdout, mockServer.URL, "dummy-model", "conventional", "")
+		err = run(stdin, stdout, RunConfig{
+			ollamaURL: mockServer.URL,
+			model:     "dummy-model",
+			format:    "conventional",
+		})
 	}, t)
 
 	if err == nil {
@@ -228,6 +240,271 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 		t.Error("Did not expect log output to contain retry messages for client error")
 	}
 	t.Logf("Log output for NoRetryOnClientError:\n%s", logOutput)
+}
+
+func TestRun_WithKeepAlive(t *testing.T) {
+	var receivedReq OllamaGenerateRequest
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&receivedReq)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: test"})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	err := run(stdin, stdout, RunConfig{
+		ollamaURL: mockServer.URL,
+		model:     "test-model",
+		format:    "conventional",
+		keepAlive: "5m",
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	if receivedReq.KeepAlive != "5m" {
+		t.Errorf("Expected keep_alive='5m', got '%s'", receivedReq.KeepAlive)
+	}
+}
+
+func TestRun_WithTemperature(t *testing.T) {
+	var receivedReq OllamaGenerateRequest
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&receivedReq)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: test"})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	temp := 0.7
+	err := run(stdin, stdout, RunConfig{
+		ollamaURL: mockServer.URL,
+		model:     "test-model",
+		format:    "conventional",
+		options: &OllamaOptions{
+			Temperature: &temp,
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	if receivedReq.Options == nil {
+		t.Fatal("Expected options to be present in request")
+	}
+	if receivedReq.Options["temperature"] != 0.7 {
+		t.Errorf("Expected temperature=0.7, got %v", receivedReq.Options["temperature"])
+	}
+}
+
+func TestRun_WithMultipleOptions(t *testing.T) {
+	var receivedReq OllamaGenerateRequest
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&receivedReq)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: test"})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	temp := 0.9
+	topK := 40
+	topP := 0.95
+	err := run(stdin, stdout, RunConfig{
+		ollamaURL: mockServer.URL,
+		model:     "test-model",
+		format:    "conventional",
+		keepAlive: "10m",
+		options: &OllamaOptions{
+			Temperature: &temp,
+			TopK:        &topK,
+			TopP:        &topP,
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	if receivedReq.KeepAlive != "10m" {
+		t.Errorf("Expected keep_alive='10m', got '%s'", receivedReq.KeepAlive)
+	}
+	if receivedReq.Options["temperature"] != 0.9 {
+		t.Errorf("Expected temperature=0.9, got %v", receivedReq.Options["temperature"])
+	}
+	if receivedReq.Options["top_k"].(float64) != 40 {
+		t.Errorf("Expected top_k=40, got %v", receivedReq.Options["top_k"])
+	}
+	if receivedReq.Options["top_p"] != 0.95 {
+		t.Errorf("Expected top_p=0.95, got %v", receivedReq.Options["top_p"])
+	}
+}
+
+func TestRun_NoOptionsWhenNotSet(t *testing.T) {
+	var receivedReq OllamaGenerateRequest
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&receivedReq)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: test"})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	err := run(stdin, stdout, RunConfig{
+		ollamaURL: mockServer.URL,
+		model:     "test-model",
+		format:    "conventional",
+		options:   &OllamaOptions{},
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	if receivedReq.KeepAlive != "" {
+		t.Errorf("Expected keep_alive to be empty, got '%s'", receivedReq.KeepAlive)
+	}
+	if receivedReq.Options != nil && len(receivedReq.Options) > 0 {
+		t.Errorf("Expected options to be nil or empty, got %v", receivedReq.Options)
+	}
+}
+
+func TestRun_WithStopSequences(t *testing.T) {
+	var receivedReq map[string]interface{}
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		json.NewDecoder(r.Body).Decode(&receivedReq)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OllamaGenerateResponse{Response: "feat: test"})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	err := run(stdin, stdout, RunConfig{
+		ollamaURL: mockServer.URL,
+		model:     "test-model",
+		format:    "conventional",
+		options: &OllamaOptions{
+			Stop: []string{"STOP1", "STOP2"},
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	options, ok := receivedReq["options"].(map[string]interface{})
+	if !ok {
+		t.Fatal("Expected options to be present in request")
+	}
+	stop, ok := options["stop"].([]interface{})
+	if !ok {
+		t.Fatal("Expected stop to be an array")
+	}
+	if len(stop) != 2 {
+		t.Errorf("Expected 2 stop sequences, got %d", len(stop))
+	}
+	if stop[0] != "STOP1" || stop[1] != "STOP2" {
+		t.Errorf("Expected stop=['STOP1', 'STOP2'], got %v", stop)
+	}
+}
+
+func TestOllamaOptions_ToMap(t *testing.T) {
+	temp := 0.5
+	topK := 20
+	stop := []string{"end"}
+
+	options := &OllamaOptions{
+		Temperature: &temp,
+		TopK:        &topK,
+		Stop:        stop,
+	}
+
+	result := options.ToMap()
+
+	if len(result) != 3 {
+		t.Errorf("Expected 3 options, got %d", len(result))
+	}
+	if result["temperature"] != 0.5 {
+		t.Errorf("Expected temperature=0.5, got %v", result["temperature"])
+	}
+	if result["top_k"] != 20 {
+		t.Errorf("Expected top_k=20, got %v", result["top_k"])
+	}
+}
+
+func TestOllamaOptions_HasOptions(t *testing.T) {
+	empty := &OllamaOptions{}
+	if empty.HasOptions() {
+		t.Error("Expected empty options to return false")
+	}
+
+	temp := 0.5
+	withTemp := &OllamaOptions{Temperature: &temp}
+	if !withTemp.HasOptions() {
+		t.Error("Expected options with temperature to return true")
+	}
+}
+
+func TestParseStopString(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{"", nil},
+		{"STOP1", []string{"STOP1"}},
+		{"STOP1,STOP2", []string{"STOP1", "STOP2"}},
+		{" STOP1 , STOP2 ", []string{"STOP1", "STOP2"}},
+		{",STOP1,,STOP2,", []string{"STOP1", "STOP2"}},
+	}
+
+	for _, tt := range tests {
+		result := parseStopString(tt.input)
+		if len(result) != len(tt.expected) {
+			t.Errorf("parseStopString(%q) = %v, expected %v", tt.input, result, tt.expected)
+			continue
+		}
+		for i := range result {
+			if result[i] != tt.expected[i] {
+				t.Errorf("parseStopString(%q)[%d] = %q, expected %q", tt.input, i, result[i], tt.expected[i])
+			}
+		}
+	}
+}
+
+func TestGetFloatPtrIfSet(t *testing.T) {
+	if getFloatPtrIfSet(0) != nil {
+		t.Error("Expected nil for 0 value")
+	}
+	if getFloatPtrIfSet(1) == nil || *getFloatPtrIfSet(1) != 1 {
+		t.Error("Expected pointer to 1 for value 1")
+	}
+}
+
+func TestGetIntPtrIfSet(t *testing.T) {
+	if getIntPtrIfSet(0) != nil {
+		t.Error("Expected nil for 0 value")
+	}
+	if getIntPtrIfSet(1) == nil || *getIntPtrIfSet(1) != 1 {
+		t.Error("Expected pointer to 1 for value 1")
+	}
 }
 
 func TestGetFormatTemplate(t *testing.T) {
