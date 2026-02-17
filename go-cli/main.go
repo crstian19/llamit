@@ -7,26 +7,108 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log" // Import the log package
+	"log"
 	"net/http"
 	"os"
 	"strings"
-	"time" // Import the time package
+	"time"
 )
 
-// OllamaGenerateRequest defines the structure for a request to the Ollama API.
 type OllamaGenerateRequest struct {
-	Model  string `json:"model"`
-	Prompt string `json:"prompt"`
-	Stream bool   `json:"stream"`
+	Model     string                 `json:"model"`
+	Prompt    string                 `json:"prompt"`
+	Stream    bool                   `json:"stream"`
+	KeepAlive string                 `json:"keep_alive,omitempty"`
+	Options   map[string]interface{} `json:"options,omitempty"`
 }
 
-// OllamaGenerateResponse defines the structure for a successful response from the Ollama API.
 type OllamaGenerateResponse struct {
 	Response string `json:"response"`
 }
 
-// Format templates for different commit message styles
+type OllamaOptions struct {
+	Temperature   *float64 `json:"temperature,omitempty"`
+	TopK          *int     `json:"top_k,omitempty"`
+	TopP          *float64 `json:"top_p,omitempty"`
+	NumCtx        *int     `json:"num_ctx,omitempty"`
+	NumPredict    *int     `json:"num_predict,omitempty"`
+	RepeatPenalty *float64 `json:"repeat_penalty,omitempty"`
+	RepeatLastN   *int     `json:"repeat_last_n,omitempty"`
+	Seed          *int     `json:"seed,omitempty"`
+	NumGPU        *int     `json:"num_gpu,omitempty"`
+	NumThread     *int     `json:"num_thread,omitempty"`
+	MinP          *float64 `json:"min_p,omitempty"`
+	TfsZ          *float64 `json:"tfs_z,omitempty"`
+	Mirostat      *int     `json:"mirostat,omitempty"`
+	MirostatEta   *float64 `json:"mirostat_eta,omitempty"`
+	MirostatTau   *float64 `json:"mirostat_tau,omitempty"`
+	Stop          []string `json:"stop,omitempty"`
+}
+
+func (o *OllamaOptions) ToMap() map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if o.Temperature != nil {
+		result["temperature"] = *o.Temperature
+	}
+	if o.TopK != nil {
+		result["top_k"] = *o.TopK
+	}
+	if o.TopP != nil {
+		result["top_p"] = *o.TopP
+	}
+	if o.NumCtx != nil {
+		result["num_ctx"] = *o.NumCtx
+	}
+	if o.NumPredict != nil {
+		result["num_predict"] = *o.NumPredict
+	}
+	if o.RepeatPenalty != nil {
+		result["repeat_penalty"] = *o.RepeatPenalty
+	}
+	if o.RepeatLastN != nil {
+		result["repeat_last_n"] = *o.RepeatLastN
+	}
+	if o.Seed != nil {
+		result["seed"] = *o.Seed
+	}
+	if o.NumGPU != nil {
+		result["num_gpu"] = *o.NumGPU
+	}
+	if o.NumThread != nil {
+		result["num_thread"] = *o.NumThread
+	}
+	if o.MinP != nil {
+		result["min_p"] = *o.MinP
+	}
+	if o.TfsZ != nil {
+		result["tfs_z"] = *o.TfsZ
+	}
+	if o.Mirostat != nil {
+		result["mirostat"] = *o.Mirostat
+	}
+	if o.MirostatEta != nil {
+		result["mirostat_eta"] = *o.MirostatEta
+	}
+	if o.MirostatTau != nil {
+		result["mirostat_tau"] = *o.MirostatTau
+	}
+	if len(o.Stop) > 0 {
+		result["stop"] = o.Stop
+	}
+
+	return result
+}
+
+func (o *OllamaOptions) HasOptions() bool {
+	return o.Temperature != nil || o.TopK != nil || o.TopP != nil ||
+		o.NumCtx != nil || o.NumPredict != nil || o.RepeatPenalty != nil ||
+		o.RepeatLastN != nil || o.Seed != nil || o.NumGPU != nil ||
+		o.NumThread != nil || o.MinP != nil || o.TfsZ != nil ||
+		o.Mirostat != nil || o.MirostatEta != nil || o.MirostatTau != nil ||
+		len(o.Stop) > 0
+}
+
 const (
 	conventionalFormat = `Generate a concise commit message following the Conventional Commits format:
 <type>(<scope>): <description>
@@ -135,7 +217,6 @@ The diff is:
 
 var ErrEmptyInput = errors.New("input from stdin is empty")
 
-// getFormatTemplate returns the appropriate format template based on the format name
 func getFormatTemplate(format string, customTemplate string) string {
 	switch format {
 	case "angular":
@@ -152,7 +233,6 @@ func getFormatTemplate(format string, customTemplate string) string {
 		if customTemplate != "" {
 			return customTemplate + "\n\nThe diff is:\n\n%s"
 		}
-		// Fallback to conventional if custom is selected but no template provided
 		return conventionalFormat
 	case "conventional":
 		fallthrough
@@ -161,11 +241,18 @@ func getFormatTemplate(format string, customTemplate string) string {
 	}
 }
 
-// run contains the core logic of the application.
-func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, format string, customTemplate string) error {
-	log.Printf("Starting commit generation. Ollama URL: %s, Model: %s, Format: %s", ollamaURL, model, format)
+type RunConfig struct {
+	ollamaURL      string
+	model          string
+	format         string
+	customTemplate string
+	keepAlive      string
+	options        *OllamaOptions
+}
 
-	// --- 1. Read git diff from stdin ---
+func run(stdin io.Reader, stdout io.Writer, config RunConfig) error {
+	log.Printf("Starting commit generation. Ollama URL: %s, Model: %s, Format: %s", config.ollamaURL, config.model, config.format)
+
 	diffBytes, err := io.ReadAll(stdin)
 	if err != nil {
 		log.Printf("ERROR: error reading from stdin: %v", err)
@@ -177,14 +264,20 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 	}
 	log.Printf("Read %d bytes of Git diff from stdin.", len(diffBytes))
 
-	// --- 2. Prepare the request for Ollama ---
-	formatTemplate := getFormatTemplate(format, customTemplate)
+	formatTemplate := getFormatTemplate(config.format, config.customTemplate)
 	prompt := fmt.Sprintf(formatTemplate, string(diffBytes))
+
 	requestData := OllamaGenerateRequest{
-		Model:  model,
-		Prompt: prompt,
-		Stream: false,
+		Model:     config.model,
+		Prompt:    prompt,
+		Stream:    false,
+		KeepAlive: config.keepAlive,
 	}
+
+	if config.options != nil && config.options.HasOptions() {
+		requestData.Options = config.options.ToMap()
+	}
+
 	jsonData, err := json.Marshal(requestData)
 	if err != nil {
 		log.Printf("ERROR: error marshalling JSON for Ollama: %v", err)
@@ -192,48 +285,42 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 	}
 	log.Print("JSON request for Ollama prepared.")
 
-	// --- 3. Make the HTTP request with retries ---
 	const maxRetries = 3
 	var resp *http.Response
 	var lastErr error
 
 	for i := 0; i <= maxRetries; i++ {
-		log.Printf("Making HTTP request to Ollama at: %s (Attempt %d/%d)", ollamaURL, i+1, maxRetries+1)
+		log.Printf("Making HTTP request to Ollama at: %s (Attempt %d/%d)", config.ollamaURL, i+1, maxRetries+1)
 
-		// Create a new request body for each retry, as the reader gets consumed
 		requestBody := bytes.NewBuffer(jsonData)
 
-		resp, lastErr = http.Post(ollamaURL, "application/json", requestBody)
+		resp, lastErr = http.Post(config.ollamaURL, "application/json", requestBody)
 		if lastErr == nil && resp.StatusCode == http.StatusOK {
 			log.Printf("HTTP request completed with status: %d", resp.StatusCode)
-			break // Success!
+			break
 		}
 
 		if i < maxRetries {
-			// Decide if we should retry based on error or status code
 			shouldRetry := true
-			if lastErr == nil { // Got a response, but it was an error status
-				// Don't retry on 4xx client errors
+			if lastErr == nil {
 				if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 					shouldRetry = false
 					log.Printf("Not retrying: Client error (status %d).", resp.StatusCode)
 				}
 			} else {
-				// Retry on network errors
 				log.Printf("Network error on attempt %d: %v", i+1, lastErr)
 			}
 
 			if shouldRetry {
-				if resp != nil { // Close it now that we decided to retry
+				if resp != nil {
 					resp.Body.Close()
 				}
-				backoff := time.Duration(1<<uint(i)) * time.Second // 1s, 2s, 4s
+				backoff := time.Duration(1<<uint(i)) * time.Second
 				log.Printf("Retrying in %v...", backoff)
 				time.Sleep(backoff)
 				continue
 			}
 		}
-		// If we are here, either max retries reached, or should not retry
 		if lastErr != nil {
 			if resp != nil {
 				resp.Body.Close()
@@ -241,7 +328,6 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 			log.Printf("ERROR: error making HTTP request to Ollama after %d attempts: %v", i+1, lastErr)
 			return fmt.Errorf("error making request to Ollama after %d attempts: %w", i+1, lastErr)
 		}
-		// If no network error but status is not OK, this is the final error
 		if resp != nil {
 			defer resp.Body.Close()
 			body, _ := io.ReadAll(resp.Body)
@@ -249,15 +335,13 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 			return fmt.Errorf("error from Ollama API (status %d): %s", resp.StatusCode, string(body))
 		}
 	}
-	// If the loop finishes without success, and resp is still nil, it means an unhandled error without a response.
 	if resp == nil || resp.StatusCode != http.StatusOK {
 		log.Print("ERROR: Could not get a successful response from Ollama after multiple attempts.")
 		return fmt.Errorf("could not get a successful response from Ollama after multiple attempts")
 	}
-	defer resp.Body.Close() // Ensure body is closed after successful loop completion
+	defer resp.Body.Close()
 	log.Print("Successful response from Ollama.")
 
-	// --- 4. Decode the response and print the commit message ---
 	var ollamaResp OllamaGenerateResponse
 	if err := json.NewDecoder(resp.Body).Decode(&ollamaResp); err != nil {
 		log.Printf("ERROR: error decoding Ollama response: %v", err)
@@ -277,14 +361,11 @@ func run(stdin io.Reader, stdout io.Writer, ollamaURL string, model string, form
 	return nil
 }
 
-// cleanResponse removes common LLM artifacts like markdown backticks
 func cleanResponse(s string) string {
 	s = strings.TrimSpace(s)
-	// Remove opening ```markdown or ```
 	if strings.HasPrefix(s, "```") {
 		lines := strings.Split(s, "\n")
 		if len(lines) > 1 && strings.HasPrefix(lines[0], "```") {
-			// Find closing ```
 			lastIdx := -1
 			for i := len(lines) - 1; i > 0; i-- {
 				if strings.TrimSpace(lines[i]) == "```" {
@@ -299,33 +380,106 @@ func cleanResponse(s string) string {
 			}
 		}
 	}
-	// Also strip any remaining single or triple backticks just in case
 	s = strings.ReplaceAll(s, "```", "")
 	s = strings.ReplaceAll(s, "`", "")
 	return strings.TrimSpace(s)
 }
 
 func main() {
-	// --- Configuration ---
 	ollamaURL := flag.String("ollama-url", "http://localhost:11434/api/generate", "Ollama API URL")
 	model := flag.String("model", "qwen2.5-coder:7b", "Ollama model to use")
 	format := flag.String("format", "conventional", "Commit message format (conventional, angular, gitmoji, karma, semantic, google, custom)")
 	customTemplate := flag.String("custom-template", "", "Custom format template (only used when format is 'custom')")
+	keepAlive := flag.String("keep-alive", "", "How long to keep the model loaded in memory (e.g., '5m', '60', '-1' for always)")
 	version := flag.Bool("version", false, "Print version and exit")
+
+	temperature := flag.Float64("temperature", 0, "Temperature for the model (0.0-2.0)")
+	topK := flag.Int("top-k", 0, "Top-k sampling parameter")
+	topP := flag.Float64("top-p", 0, "Top-p sampling parameter")
+	numCtx := flag.Int("num-ctx", 0, "Context window size")
+	numPredict := flag.Int("num-predict", 0, "Maximum tokens to predict")
+	repeatPenalty := flag.Float64("repeat-penalty", 0, "Repetition penalty")
+	repeatLastN := flag.Int("repeat-last-n", 0, "Look back distance for repetition penalty")
+	seed := flag.Int("seed", 0, "Random seed (-1 for random)")
+	numGPU := flag.Int("num-gpu", 0, "Number of GPUs to use")
+	numThread := flag.Int("num-thread", 0, "Number of threads to use")
+	minP := flag.Float64("min-p", 0, "Minimum probability sampling")
+	tfsZ := flag.Float64("tfs-z", 0, "Tail free sampling parameter")
+	mirostat := flag.Int("mirostat", 0, "Mirostat sampling (0, 1, 2)")
+	mirostatEta := flag.Float64("mirostat-eta", 0, "Mirostat eta parameter")
+	mirostatTau := flag.Float64("mirostat-tau", 0, "Mirostat tau parameter")
+	stop := flag.String("stop", "", "Stop sequences (comma-separated)")
+
 	flag.Parse()
 
 	if *version {
-		fmt.Println("Llamit CLI v0.2.1-format-fix")
+		fmt.Println("Llamit CLI v0.3.0-ollama-options")
 		return
 	}
 
-	// Configure logger to write to stderr by default
 	log.SetOutput(os.Stderr)
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile) // Add date, time, and file:line to log output
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 
-	if err := run(os.Stdin, os.Stdout, *ollamaURL, *model, *format, *customTemplate); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err) // This error is still printed to stderr for consistency with run's error logging
+	options := &OllamaOptions{
+		Temperature:   getFloatPtrIfSet(*temperature),
+		TopK:          getIntPtrIfSet(*topK),
+		TopP:          getFloatPtrIfSet(*topP),
+		NumCtx:        getIntPtrIfSet(*numCtx),
+		NumPredict:    getIntPtrIfSet(*numPredict),
+		RepeatPenalty: getFloatPtrIfSet(*repeatPenalty),
+		RepeatLastN:   getIntPtrIfSet(*repeatLastN),
+		Seed:          getIntPtrIfSet(*seed),
+		NumGPU:        getIntPtrIfSet(*numGPU),
+		NumThread:     getIntPtrIfSet(*numThread),
+		MinP:          getFloatPtrIfSet(*minP),
+		TfsZ:          getFloatPtrIfSet(*tfsZ),
+		Mirostat:      getIntPtrIfSet(*mirostat),
+		MirostatEta:   getFloatPtrIfSet(*mirostatEta),
+		MirostatTau:   getFloatPtrIfSet(*mirostatTau),
+		Stop:          parseStopString(*stop),
+	}
+
+	config := RunConfig{
+		ollamaURL:      *ollamaURL,
+		model:          *model,
+		format:         *format,
+		customTemplate: *customTemplate,
+		keepAlive:      *keepAlive,
+		options:        options,
+	}
+
+	if err := run(os.Stdin, os.Stdout, config); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 	log.Print("Llamit CLI finished successfully.")
+}
+
+func getFloatPtrIfSet(value float64) *float64 {
+	if value != 0 {
+		return &value
+	}
+	return nil
+}
+
+func getIntPtrIfSet(value int) *int {
+	if value != 0 {
+		return &value
+	}
+	return nil
+}
+
+func parseStopString(stopStr string) []string {
+	if stopStr == "" {
+		return nil
+	}
+	parts := strings.Split(stopStr, ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }

@@ -8,6 +8,23 @@ export interface LlamitConfig {
     model: string;
     commitFormat: string;
     customFormat: string;
+    keepAlive?: string;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+    numCtx?: number;
+    numPredict?: number;
+    repeatPenalty?: number;
+    repeatLastN?: number;
+    seed?: number;
+    numGpu?: number;
+    numThread?: number;
+    minP?: number;
+    tfsZ?: number;
+    mirostat?: number;
+    mirostatEta?: number;
+    mirostatTau?: number;
+    stop?: string;
 }
 
 export interface GitDiffResult {
@@ -141,6 +158,61 @@ export function generateCommitMessage(
         // Add custom template if format is 'custom' and template is provided
         if (config.commitFormat === 'custom' && config.customFormat) {
             args.push('-custom-template', config.customFormat);
+        }
+
+        // Add keep-alive if provided
+        if (config.keepAlive) {
+            args.push('-keep-alive', config.keepAlive);
+        }
+
+        // Add Ollama options if provided
+        if (config.temperature !== undefined && config.temperature !== 0) {
+            args.push('-temperature', config.temperature.toString());
+        }
+        if (config.topK !== undefined && config.topK !== 0) {
+            args.push('-top-k', config.topK.toString());
+        }
+        if (config.topP !== undefined && config.topP !== 0) {
+            args.push('-top-p', config.topP.toString());
+        }
+        if (config.numCtx !== undefined && config.numCtx !== 0) {
+            args.push('-num-ctx', config.numCtx.toString());
+        }
+        if (config.numPredict !== undefined && config.numPredict !== 0) {
+            args.push('-num-predict', config.numPredict.toString());
+        }
+        if (config.repeatPenalty !== undefined && config.repeatPenalty !== 0) {
+            args.push('-repeat-penalty', config.repeatPenalty.toString());
+        }
+        if (config.repeatLastN !== undefined && config.repeatLastN !== 0) {
+            args.push('-repeat-last-n', config.repeatLastN.toString());
+        }
+        if (config.seed !== undefined && config.seed !== 0) {
+            args.push('-seed', config.seed.toString());
+        }
+        if (config.numGpu !== undefined && config.numGpu !== 0) {
+            args.push('-num-gpu', config.numGpu.toString());
+        }
+        if (config.numThread !== undefined && config.numThread !== 0) {
+            args.push('-num-thread', config.numThread.toString());
+        }
+        if (config.minP !== undefined && config.minP !== 0) {
+            args.push('-min-p', config.minP.toString());
+        }
+        if (config.tfsZ !== undefined && config.tfsZ !== 0) {
+            args.push('-tfs-z', config.tfsZ.toString());
+        }
+        if (config.mirostat !== undefined && config.mirostat !== 0) {
+            args.push('-mirostat', config.mirostat.toString());
+        }
+        if (config.mirostatEta !== undefined && config.mirostatEta !== 0) {
+            args.push('-mirostat-eta', config.mirostatEta.toString());
+        }
+        if (config.mirostatTau !== undefined && config.mirostatTau !== 0) {
+            args.push('-mirostat-tau', config.mirostatTau.toString());
+        }
+        if (config.stop) {
+            args.push('-stop', config.stop);
         }
 
         const child = execFile(
