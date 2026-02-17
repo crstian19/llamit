@@ -5,6 +5,28 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-02-17
+
+### Added
+- **Advanced Ollama Parameters**: Full support for customizing model behavior with 15+ new parameters:
+  - `keepAlive`: Control model memory retention time
+  - `temperature`, `topK`, `topP`: Fine-tune output creativity and determinism
+  - `numCtx`, `numPredict`: Manage context window and token generation
+  - `repeatPenalty`, `repeatLastN`: Reduce repetitive output
+  - `seed`: Enable reproducible results
+  - `numGpu`, `numThread`: Optimize hardware utilization
+  - `minP`, `tfsZ`: Advanced sampling parameters
+  - `mirostat`, `mirostatEta`, `mirostatTau`: Mirostat sampling algorithm
+  - `stop`: Custom stop sequences
+
+### Changed
+- **Documentation**: Release notes moved to GitHub Releases page for better maintainability
+- Extension now provides granular control over Ollama model parameters
+
+### Notes
+- 🎉 **First stable release** - Llamit is now production-ready!
+- All features tested and stable
+- Backward compatible with existing configurations
 
 ## [0.4.0] - 2026-02-07
 
