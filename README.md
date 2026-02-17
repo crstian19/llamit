@@ -249,6 +249,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 
 ## Releases
 
+📋 **See all release notes on the [GitHub Releases page](https://github.com/crstian19/llamit/releases)**
+
 Llamit uses automated CI/CD for releases:
 - ✅ Automatic releases on merge to `main`
 - 📦 Platform-specific packaging (6 platforms)
@@ -265,19 +267,6 @@ MIT License - see [LICENSE](LICENSE) file for details
 - Built with [Claude](https://claude.ai) - AI pair programming at its finest
 - Powered by [Ollama](https://ollama.ai) - local LLM runtime
 - Inspired by the need for better commit messages everywhere
-
-## Release Notes
-
-### 0.2.2
-- **Configurable Formats**: Added 6 predefined templates (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
-- **Custom Templates**: Support for user-defined commit message formats
-- **Optimized Prompts**: Refined instructions for maximum conciseness and brevity
-- **Markdown Cleanup**: Automatic removal of backticks and code blocks from LLM output
-- **Automation**: Integrated Go CLI build into the extension lifecycle
-- **UI improvements**: High-fidelity badges and CDN-based logo
-
-### 0.1.0
-- Initial release with local Ollama integration
 
 ---
 
