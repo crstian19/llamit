@@ -233,3 +233,12 @@ export function generateCommitMessage(
         child.stdin?.end();
     });
 }
+
+export interface Repository {
+    rootUri: {
+        fsPath: string;
+    };
+    inputBox: {
+        value: string;
+    };
+}
