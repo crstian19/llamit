@@ -1,7 +1,42 @@
 import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
-import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade } from './helpers';
+import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade, Repository } from './helpers';
+
+function getCurrentRepository(repositories: Repository[]): Repository | undefined {
+    if (repositories.length === 0) {
+        return undefined;
+    }
+
+    if (repositories.length === 1) {
+        return repositories[0];
+    }
+
+    const activeEditor = vscode.window.activeTextEditor;
+    if (activeEditor) {
+        const activeFilePath = activeEditor.document.uri.fsPath;
+        for (const repo of repositories) {
+            const rootPath = repo.rootUri.fsPath;
+            if (activeFilePath.startsWith(rootPath)) {
+                return repo;
+            }
+        }
+    }
+
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+        for (const folder of workspaceFolders) {
+            for (const repo of repositories) {
+                const rootPath = repo.rootUri.fsPath;
+                if (folder.uri.fsPath === rootPath) {
+                    return repo;
+                }
+            }
+        }
+    }
+
+    return repositories[0];
+}
 
 // Helper to get the Git API from the built-in VS Code extension
 export async function getGitAPI() {
@@ -56,8 +91,12 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-        // Use the first repository for simplicity
-        const repo = git.repositories[0];
+        // Get the current repository based on active editor or workspace context
+        const repo = getCurrentRepository(git.repositories as unknown as Repository[]);
+        if (!repo) {
+            vscode.window.showWarningMessage('Could not determine the active Git repository.');
+            return;
+        }
 
         vscode.window.withProgress({
             location: vscode.ProgressLocation.SourceControl,
