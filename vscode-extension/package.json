@@ -2,7 +2,7 @@
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
     "description": "Generate semantic commit messages using your local Ollama LLM instance. Fast, secure, and fully local.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
@@ -74,12 +74,12 @@
                 "llamit.ollamaUrl": {
                     "type": "string",
                     "default": "http://localhost:11434/api/generate",
-                    "description": "The URL for the Ollama '/api/generate' endpoint."
+                    "description": "[ESSENTIAL] The URL for the Ollama '/api/generate' endpoint."
                 },
                 "llamit.model": {
                     "type": "string",
                     "default": "qwen2.5-coder:7b",
-                    "description": "The Ollama model to use for generating commit messages."
+                    "description": "[ESSENTIAL] The Ollama model to use for generating commit messages."
                 },
                 "llamit.commitFormat": {
                     "type": "string",
@@ -102,116 +102,116 @@
                         "Google commit format",
                         "Custom format using your own template"
                     ],
-                    "description": "The commit message format to use."
+                    "description": "[ESSENTIAL] The commit message format to use."
                 },
                 "llamit.customFormat": {
                     "type": "string",
                     "default": "",
                     "editPresentation": "multilineText",
                     "markdownDescription": "Custom commit message format template. Only used when `#llamit.commitFormat#` is set to `custom`. Use placeholders like `<type>`, `<scope>`, `<description>` to guide the AI.",
-                    "description": "Custom format template (only used when commitFormat is 'custom')."
+                    "description": "[ESSENTIAL] Custom format template (only used when commitFormat is 'custom')."
                 },
                 "llamit.keepAlive": {
                     "type": "string",
                     "default": "",
-                    "markdownDescription": "How long to keep the model loaded in memory after the request. Examples: `5m` (5 minutes), `60` (60 seconds), `-1` (always keep loaded), `0` (unload immediately).",
-                    "description": "Keep the model loaded in memory (e.g., '5m', '60', '-1')."
+                    "markdownDescription": "**[ADVANCED]** How long to keep the model loaded in memory after the request. Examples: `5m` (5 minutes), `60` (60 seconds), `-1` (always keep loaded), `0` (unload immediately).",
+                    "description": "[ADVANCED] Keep the model loaded in memory (e.g., '5m', '60', '-1')."
                 },
                 "llamit.temperature": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Temperature for the model (0.0-2.0). Lower values make output more deterministic, higher values more creative. Default is 0 (uses Ollama default).",
-                    "description": "Temperature for the model (0.0-2.0)."
+                    "markdownDescription": "**[ADVANCED]** Temperature for the model (0.0-2.0). Lower values make output more deterministic, higher values more creative. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Temperature for the model (0.0-2.0)."
                 },
                 "llamit.topK": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Top-k sampling parameter. Limits the number of highest probability tokens to consider. Default is 0 (uses Ollama default, typically 40).",
-                    "description": "Top-k sampling parameter."
+                    "markdownDescription": "**[ADVANCED]** Top-k sampling parameter. Limits the number of highest probability tokens to consider. Default is 0 (uses Ollama default, typically 40).",
+                    "description": "[ADVANCED] Top-k sampling parameter."
                 },
                 "llamit.topP": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Top-p (nucleus) sampling parameter. Limits the cumulative probability of tokens to consider. Default is 0 (uses Ollama default, typically 0.9).",
-                    "description": "Top-p sampling parameter."
+                    "markdownDescription": "**[ADVANCED]** Top-p (nucleus) sampling parameter. Limits the cumulative probability of tokens to consider. Default is 0 (uses Ollama default, typically 0.9).",
+                    "description": "[ADVANCED] Top-p sampling parameter."
                 },
                 "llamit.numCtx": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Context window size (number of tokens). Default is 0 (uses Ollama default).",
-                    "description": "Context window size."
+                    "markdownDescription": "**[ADVANCED]** Context window size (number of tokens). Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Context window size."
                 },
                 "llamit.numPredict": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Maximum number of tokens to predict. Default is 0 (uses Ollama default).",
-                    "description": "Maximum tokens to predict."
+                    "markdownDescription": "**[ADVANCED]** Maximum number of tokens to predict. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Maximum tokens to predict."
                 },
                 "llamit.repeatPenalty": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Repetition penalty. Helps reduce repetitive output. Default is 0 (uses Ollama default, typically 1.1).",
-                    "description": "Repetition penalty."
+                    "markdownDescription": "**[ADVANCED]** Repetition penalty. Helps reduce repetitive output. Default is 0 (uses Ollama default, typically 1.1).",
+                    "description": "[ADVANCED] Repetition penalty."
                 },
                 "llamit.repeatLastN": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "How far back to look for repetition penalty. Default is 0 (uses Ollama default, typically 64).",
-                    "description": "Look back distance for repetition penalty."
+                    "markdownDescription": "**[ADVANCED]** How far back to look for repetition penalty. Default is 0 (uses Ollama default, typically 64).",
+                    "description": "[ADVANCED] Look back distance for repetition penalty."
                 },
                 "llamit.seed": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Random seed for reproducibility. Set to -1 for random. Default is 0 (uses Ollama default).",
-                    "description": "Random seed (-1 for random)."
+                    "markdownDescription": "**[ADVANCED]** Random seed for reproducibility. Set to -1 for random. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Random seed (-1 for random)."
                 },
                 "llamit.numGpu": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Number of GPUs to use. On macOS defaults to 1. Default is 0 (uses Ollama default).",
-                    "description": "Number of GPUs to use."
+                    "markdownDescription": "**[ADVANCED]** Number of GPUs to use. On macOS defaults to 1. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Number of GPUs to use."
                 },
                 "llamit.numThread": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Number of threads to use. Default is 0 (uses Ollama default).",
-                    "description": "Number of threads to use."
+                    "markdownDescription": "**[ADVANCED]** Number of threads to use. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Number of threads to use."
                 },
                 "llamit.minP": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Minimum probability sampling. Filters out tokens with probability below this threshold. Default is 0 (uses Ollama default).",
-                    "description": "Minimum probability sampling."
+                    "markdownDescription": "**[ADVANCED]** Minimum probability sampling. Filters out tokens with probability below this threshold. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Minimum probability sampling."
                 },
                 "llamit.tfsZ": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Tail free sampling parameter. Default is 0 (uses Ollama default).",
-                    "description": "Tail free sampling parameter."
+                    "markdownDescription": "**[ADVANCED]** Tail free sampling parameter. Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Tail free sampling parameter."
                 },
                 "llamit.mirostat": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Mirostat sampling algorithm (0: disabled, 1: Mirostat, 2: Mirostat 2.0). Default is 0 (uses Ollama default).",
-                    "description": "Mirostat sampling (0, 1, 2)."
+                    "markdownDescription": "**[ADVANCED]** Mirostat sampling algorithm (0: disabled, 1: Mirostat, 2: Mirostat 2.0). Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Mirostat sampling (0, 1, 2)."
                 },
                 "llamit.mirostatEta": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Mirostat eta parameter (learning rate). Default is 0 (uses Ollama default).",
-                    "description": "Mirostat eta parameter."
+                    "markdownDescription": "**[ADVANCED]** Mirostat eta parameter (learning rate). Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Mirostat eta parameter."
                 },
                 "llamit.mirostatTau": {
                     "type": "number",
                     "default": 0,
-                    "markdownDescription": "Mirostat tau parameter (target entropy). Default is 0 (uses Ollama default).",
-                    "description": "Mirostat tau parameter."
+                    "markdownDescription": "**[ADVANCED]** Mirostat tau parameter (target entropy). Default is 0 (uses Ollama default).",
+                    "description": "[ADVANCED] Mirostat tau parameter."
                 },
                 "llamit.stop": {
                     "type": "string",
                     "default": "",
-                    "markdownDescription": "Stop sequences (comma-separated). The model will stop generating when it encounters these sequences.",
-                    "description": "Stop sequences (comma-separated)."
+                    "markdownDescription": "**[ADVANCED]** Stop sequences (comma-separated). The model will stop generating when it encounters these sequences.",
+                    "description": "[ADVANCED] Stop sequences (comma-separated)."
                 }
             }
         }
