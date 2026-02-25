@@ -3,7 +3,7 @@ import { execFile } from 'child_process';
 import * as path from 'path';
 import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade, Repository } from './helpers';
 
-function getCurrentRepository(repositories: Repository[]): Repository | undefined {
+async function getCurrentRepository(repositories: Repository[]): Promise<Repository | undefined> {
     if (repositories.length === 0) {
         return undefined;
     }
@@ -12,30 +12,17 @@ function getCurrentRepository(repositories: Repository[]): Repository | undefine
         return repositories[0];
     }
 
-    const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor) {
-        const activeFilePath = activeEditor.document.uri.fsPath;
-        for (const repo of repositories) {
-            const rootPath = repo.rootUri.fsPath;
-            if (activeFilePath.startsWith(rootPath)) {
-                return repo;
-            }
-        }
-    }
+    // Always ask the user to select when there are multiple repositories
+    const selected = await vscode.window.showQuickPick(
+        repositories.map(repo => ({
+            label: path.basename(repo.rootUri.fsPath),
+            description: repo.rootUri.fsPath,
+            repo: repo
+        })),
+        { placeHolder: 'Select a repository for commit message' }
+    );
 
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (workspaceFolders) {
-        for (const folder of workspaceFolders) {
-            for (const repo of repositories) {
-                const rootPath = repo.rootUri.fsPath;
-                if (folder.uri.fsPath === rootPath) {
-                    return repo;
-                }
-            }
-        }
-    }
-
-    return repositories[0];
+    return selected?.repo;
 }
 
 // Helper to get the Git API from the built-in VS Code extension
@@ -92,7 +79,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         // Get the current repository based on active editor or workspace context
-        const repo = getCurrentRepository(git.repositories as unknown as Repository[]);
+        const repo = await getCurrentRepository(git.repositories as unknown as Repository[]);
         if (!repo) {
             vscode.window.showWarningMessage('Could not determine the active Git repository.');
             return;
@@ -104,6 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
         }, async () => {
             try {
                 // 1. Get the git diff (staged changes with fallback to working directory)
+                // Use global git path with repository-specific working directory
                 const gitPath = git.git.path;
                 const repositoryRoot = repo.rootUri.fsPath;
                 const diffResult = await getGitDiffCascade(gitPath, repositoryRoot);
