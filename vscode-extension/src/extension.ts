@@ -104,9 +104,9 @@ export function activate(context: vscode.ExtensionContext) {
         }, async () => {
             try {
                 // 1. Get the git diff (staged changes with fallback to working directory)
-                const gitPath = git.git.path;
+                // Use the repository-specific git path instead of the global one
                 const repositoryRoot = repo.rootUri.fsPath;
-                const diffResult = await getGitDiffCascade(gitPath, repositoryRoot);
+                const diffResult = await getGitDiffCascade(repo.git.path, repositoryRoot);
 
                 if (diffResult.isEmpty) {
                     vscode.window.showInformationMessage('No changes to commit.');

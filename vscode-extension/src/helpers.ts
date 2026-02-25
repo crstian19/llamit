@@ -241,4 +241,7 @@ export interface Repository {
     inputBox: {
         value: string;
     };
+    git: {
+        path: string;
+    };
 }
