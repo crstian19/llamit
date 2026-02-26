@@ -5,6 +5,32 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-02-25
+
+### Added
+- **Updated Go CLI Binaries**: Latest binaries included with extension package
+
+### Fixed
+- Binary files updated to latest version
+
+## [1.2.0] - 2026-02-22
+
+### Added
+- **Repository Selector**: New dropdown to select the correct Git repository in multi-workspace scenarios
+- **Workspace-Specific Git Path**: Extension now uses repository-specific git path for accurate repository detection
+
+### Fixed
+- Incorrect Git repository detection in multi-folder workspaces
+
+## [1.1.0] - 2026-02-22
+
+### Added
+- **Enhanced Settings Organization**: Settings now grouped with ESSENTIAL and ADVANCED labels
+- **Multi-Workspace Git Detection**: Improved logic to detect the correct Git repository when working with multiple folders
+
+### Fixed
+- Git repository detection in complex workspace configurations
+
 ## [1.0.0] - 2026-02-17
 
 ### Added
