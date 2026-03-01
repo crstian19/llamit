@@ -71,7 +71,7 @@ jobs:
           node-version: '20'
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v8
 
       - name: Publish to Open VSX
         if: env.OPENVSX_TOKEN != ''
