@@ -234,7 +234,7 @@
         "@types/sinon": "^17.0.3",
         "@types/glob": "^8.1.0",
         "@vscode/test-electron": "^2.3.9",
-        "@vscode/vsce": "^2.22.0",
+        "@vscode/vsce": "^3.0.0",
         "glob": "^10.3.10",
         "mocha": "^10.3.0",
         "sinon": "^17.0.1",
