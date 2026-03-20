@@ -5,10 +5,24 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - Unreleased
+## [1.5.0] - Unreleased
 
 ### Updated
-- **Dependency Update**: Updated `@vscode/vsce` from v2 to v3 for improved extension packaging
+- **Dependency Updates**: Updated multiple dependencies:
+  - `@vscode/vsce` from v2 to v3
+  - `glob` to v13
+  - `@types/node` to v25
+  - `@types/glob` to v9
+  - `@types/vscode` to v1.110.0
+- **GitHub Actions Updates**: Updated workflow actions:
+  - `actions/checkout` to v6
+  - `actions/setup-go` to v6
+  - `actions/setup-node` to v6
+  - `actions/download-artifact` to v8
+  - `actions/upload-artifact` to v7
+- **Go Version**: Updated to Go 1.26
+
+## [1.4.0] - 2026-03-20
 
 ## [1.3.0] - 2026-02-25
 
