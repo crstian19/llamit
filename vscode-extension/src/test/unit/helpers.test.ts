@@ -7,7 +7,7 @@ import { getBinaryPath, LlamitConfig } from '../../helpers';
  */
 suite('Helper Functions', () => {
     suite('getBinaryPath', () => {
-        let originalPlatform: NodeJS.Platform;
+        let originalPlatform: string;
         let originalArch: string;
 
         setup(() => {

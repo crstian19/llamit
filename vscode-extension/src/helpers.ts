@@ -70,7 +70,7 @@ function executeGitDiff(
     args: string[]
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
-        execFile(gitPath, args, { cwd: repositoryRoot }, (error, stdout, stderr) => {
+        execFile(gitPath, args, { cwd: repositoryRoot }, (error: Error | null, stdout: string, stderr: string) => {
             if (error && !stdout) {
                 reject(new Error(stderr || error.message));
                 return;
@@ -127,7 +127,7 @@ export async function getGitDiffCascade(
  */
 export function getGitDiff(gitPath: string, repositoryRoot: string): Promise<GitDiffResult> {
     return new Promise<GitDiffResult>((resolve, reject) => {
-        execFile(gitPath, ['diff', '--cached'], { cwd: repositoryRoot }, (error, stdout, stderr) => {
+        execFile(gitPath, ['diff', '--cached'], { cwd: repositoryRoot }, (error: Error | null, stdout: string, stderr: string) => {
             if (error) {
                 // It's not a true error if stdout is empty, just means no staged changes.
                 if (stdout.trim() === '') {
@@ -218,7 +218,7 @@ export function generateCommitMessage(
         const child = execFile(
             binaryPath,
             args,
-            (error, stdout, stderr) => {
+            (error: Error | null, stdout: string, stderr: string) => {
                 if (error) {
                     console.error(`execFile error for llamit cli: ${error.message}`);
                     reject(new Error(stderr || error.message));
