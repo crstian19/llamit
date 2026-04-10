@@ -60,7 +60,7 @@ export async function sendTelemetry(
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'User-Agent': `llamit-vscode/${version}`
+                'User-Agent': `Mozilla/5.0 (compatible; llamit-vscode/${version})`
             },
             body: JSON.stringify(payload),
             signal: AbortSignal.timeout(5000)
