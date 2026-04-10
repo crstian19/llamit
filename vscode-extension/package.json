@@ -2,7 +2,7 @@
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
     "description": "Generate semantic commit messages using your local Ollama LLM instance. Fast, secure, and fully local.",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
@@ -212,6 +212,16 @@
                     "default": "",
                     "markdownDescription": "**[ADVANCED]** Stop sequences (comma-separated). The model will stop generating when it encounters these sequences.",
                     "description": "[ADVANCED] Stop sequences (comma-separated)."
+                },
+                "llamit.telemetry.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "Enable anonymous usage telemetry (install/update events only). Set to `false` to opt out. See [USAGE_DATA.md](https://github.com/crstian19/llamit/blob/main/USAGE_DATA.md) for details on what is collected.",
+                    "description": "Enable anonymous usage telemetry (install/update events only).",
+                    "tags": [
+                        "telemetry",
+                        "usesOnlineServices"
+                    ]
                 }
             }
         }
