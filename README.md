@@ -258,6 +258,12 @@ Llamit uses automated CI/CD for releases:
 
 For maintainers: See [.github/RELEASE.md](.github/RELEASE.md) for detailed release process documentation.
 
+## Telemetry
+
+Llamit collects minimal anonymous usage data (install/update events and editor name) to understand adoption across editors like VS Code, VSCodium, and Cursor. No PII, code, or usage frequency is ever collected.
+
+You can opt out at any time by setting `llamit.telemetry.enabled` to `false`. See [USAGE_DATA.md](./USAGE_DATA.md) for full details.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details

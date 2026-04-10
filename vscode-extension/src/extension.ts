@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
 import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade, Repository } from './helpers';
+import { sendTelemetry, getTelemetryEvent, persistTrackedVersion } from './telemetry';
 
 async function getCurrentRepository(repositories: Repository[]): Promise<Repository | undefined> {
     if (repositories.length === 0) {
@@ -126,6 +127,17 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(openSettingsDisposable);
+
+    // Send anonymous telemetry on install or update only (not on every activation)
+    const currentVersion = vscode.extensions.getExtension('Crstian.llamit')?.packageJSON?.version as string | undefined;
+    if (currentVersion) {
+        const event = getTelemetryEvent(context, currentVersion);
+        if (event) {
+            sendTelemetry(context, event, currentVersion).then(() => {
+                persistTrackedVersion(context, currentVersion);
+            }).catch(() => { /* ignore */ });
+        }
+    }
 }
 
 export function deactivate() { }
