@@ -2,7 +2,7 @@
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
     "description": "Generate semantic commit messages using your local Ollama LLM instance. Fast, secure, and fully local.",
-    "version": "1.9.1",
+    "version": "1.9.2",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
@@ -47,6 +47,9 @@
         "Machine Learning"
     ],
     "main": "./out/extension.js",
+    "activationEvents": [
+        "onStartupFinished"
+    ],
     "contributes": {
         "commands": [
             {

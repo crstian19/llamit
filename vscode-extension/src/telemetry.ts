@@ -54,8 +54,6 @@ export async function sendTelemetry(
     };
 
     try {
-        // Fire-and-forget: we send the ping but do not await or surface errors to the user.
-        // Using native fetch (Node 18+, available in VS Code extension runtime).
         await fetch(UMAMI_ENDPOINT, {
             method: 'POST',
             headers: {
