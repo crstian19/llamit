@@ -129,7 +129,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(openSettingsDisposable);
 
     // Send anonymous telemetry on install or update only (not on every activation)
-    const currentVersion = vscode.extensions.getExtension('Crstian.llamit')?.packageJSON?.version as string | undefined;
+    const currentVersion = context.extension.packageJSON.version as string | undefined;
     if (currentVersion) {
         const event = getTelemetryEvent(context, currentVersion);
         if (event) {
