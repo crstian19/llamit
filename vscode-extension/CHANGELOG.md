@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`llamit.telemetry.enabled` setting**: Opt-out toggle for Llamit-specific telemetry (default: `true`).
 - **`USAGE_DATA.md`**: Documents exactly what is and isn't collected, and how to opt out.
 
+### Updated
+- **Dependency Updates**:
+  - `@types/node` to v25.6.0
+  - `sinon` to v21.1.0
+  - `@types/vscode` to v1.115.0
+
 ## [1.6.0] - 2026-04-07
 
 ### Updated
