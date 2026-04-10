@@ -58,7 +58,10 @@ export async function sendTelemetry(
         // Using native fetch (Node 18+, available in VS Code extension runtime).
         await fetch(UMAMI_ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': `llamit-vscode/${version}`
+            },
             body: JSON.stringify(payload),
             signal: AbortSignal.timeout(5000)
         });
