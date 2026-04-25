@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.9.3] - 2026-04-25
 
 ### Changed
-- **Dependencias**: Actualización de dependencias de desarrollo y herramientas de build (`sinon`, `@types/vscode`, `typescript`, `@vscode/vsce`, `softprops/action-gh-release`).
+- **Dependencies**: Updated dev dependencies and build tooling (`sinon`, `@types/vscode`, `typescript`, `@vscode/vsce`, `softprops/action-gh-release`).
 
 ## [1.9.2] - 2026-04-10
 
