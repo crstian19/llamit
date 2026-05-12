@@ -30,7 +30,7 @@ func TestRun_IntegrationSuccess(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	ollamaURL := "http://localhost:11434/api/generate"
+	apiURL := "http://localhost:11434/api/generate"
 	model := "qwen2.5-coder:7b"
 
 	sampleDiff := `diff --git a/main.go b/main.go
@@ -51,9 +51,10 @@ index 1234567..abcdefg 100644
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: ollamaURL,
-			model:     model,
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  apiURL,
+			model:   model,
+			format:  "conventional",
 		})
 	}, t)
 
@@ -68,8 +69,8 @@ index 1234567..abcdefg 100644
 	if !strings.Contains(logOutput, "Starting commit generation.") {
 		t.Error("Expected log output to contain 'Starting commit generation.'")
 	}
-	if !strings.Contains(logOutput, "Successful response from Ollama.") {
-		t.Error("Expected log output to contain 'Successful response from Ollama.'")
+	if !strings.Contains(logOutput, "Successful response from ollama API.") {
+		t.Error("Expected log output to contain 'Successful response from ollama API.'")
 	}
 	t.Logf("Integration test successful, received from Ollama: %s", stdout.String())
 	t.Logf("Log output:\n%s", logOutput)
@@ -82,9 +83,10 @@ func TestRun_EmptyInput(t *testing.T) {
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: "dummy-url",
-			model:     "dummy-model",
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  "dummy-url",
+			model:   "dummy-model",
+			format:  "conventional",
 		})
 	}, t)
 
@@ -106,20 +108,21 @@ func TestRun_BadURL(t *testing.T) {
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: badURL,
-			model:     "dummy-model",
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  badURL,
+			model:   "dummy-model",
+			format:  "conventional",
 		})
 	}, t)
 
 	if err == nil {
 		t.Fatal("Expected an error for a bad URL, but got nil")
 	}
-	if !strings.Contains(logOutput, "Making HTTP request to Ollama at:") {
-		t.Error("Expected log output to contain 'Making HTTP request to Ollama at:'")
+	if !strings.Contains(logOutput, "Making HTTP request to ollama API at:") {
+		t.Error("Expected log output to contain 'Making HTTP request to ollama API at:'")
 	}
-	if !strings.Contains(logOutput, "ERROR: error making HTTP request to Ollama after") {
-		t.Error("Expected log output to contain 'ERROR: error making HTTP request to Ollama after'")
+	if !strings.Contains(logOutput, "ERROR: error making HTTP request to ollama API after") {
+		t.Error("Expected log output to contain 'ERROR: error making HTTP request to ollama API after'")
 	}
 	t.Logf("Log output for BadURL:\n%s", logOutput)
 }
@@ -146,9 +149,10 @@ func TestRun_RetrySuccess(t *testing.T) {
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: mockServer.URL,
-			model:     "dummy-model",
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  mockServer.URL,
+			model:   "dummy-model",
+			format:  "conventional",
 		})
 	}, t)
 
@@ -181,9 +185,10 @@ func TestRun_RetryFailure(t *testing.T) {
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: mockServer.URL,
-			model:     "dummy-model",
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  mockServer.URL,
+			model:   "dummy-model",
+			format:  "conventional",
 		})
 	}, t)
 
@@ -191,14 +196,14 @@ func TestRun_RetryFailure(t *testing.T) {
 		t.Fatal("Expected run() to return an error, but got nil")
 	}
 	t.Logf("Actual error from run: %v", err.Error())
-	if !strings.Contains(err.Error(), `error from Ollama API (status 500): {"error": "Always fails"}`) {
-		t.Errorf("Expected specific error about Ollama API status 500, got: %v", err)
+	if !strings.Contains(err.Error(), `error from ollama API (status 500): {"error": "Always fails"}`) {
+		t.Errorf("Expected specific error about ollama API status 500, got: %v", err)
 	}
 
 	if !strings.Contains(logOutput, "Retrying in ") {
 		t.Error("Expected log output to contain retry messages")
 	}
-	if !strings.Contains(logOutput, `ERROR: Ollama API returned error (status 500): `) {
+	if !strings.Contains(logOutput, `ERROR: ollama API returned error (status 500): `) {
 		t.Error("Expected log output to show final error after retries")
 	}
 	t.Logf("Log output for RetryFailure:\n%s", logOutput)
@@ -219,9 +224,10 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 	var err error
 	logOutput := captureLog(func() {
 		err = run(stdin, stdout, RunConfig{
-			ollamaURL: mockServer.URL,
-			model:     "dummy-model",
-			format:    "conventional",
+			apiType: APITypeOllama,
+			apiURL:  mockServer.URL,
+			model:   "dummy-model",
+			format:  "conventional",
 		})
 	}, t)
 
@@ -229,8 +235,8 @@ func TestRun_NoRetryOnClientError(t *testing.T) {
 		t.Fatal("Expected run() to return an error, but got nil")
 	}
 	t.Logf("Actual error from run: %v", err.Error())
-	if !strings.Contains(err.Error(), `error from Ollama API (status 400): {"error": "Bad Request"}`) {
-		t.Errorf("Expected specific error about Ollama API status 400, got: %v", err)
+	if !strings.Contains(err.Error(), `error from ollama API (status 400): {"error": "Bad Request"}`) {
+		t.Errorf("Expected specific error about ollama API status 400, got: %v", err)
 	}
 
 	if requestCounter != 1 {
@@ -256,7 +262,8 @@ func TestRun_WithKeepAlive(t *testing.T) {
 	stdout := new(bytes.Buffer)
 
 	err := run(stdin, stdout, RunConfig{
-		ollamaURL: mockServer.URL,
+		apiType:   APITypeOllama,
+		apiURL:    mockServer.URL,
 		model:     "test-model",
 		format:    "conventional",
 		keepAlive: "5m",
@@ -286,9 +293,10 @@ func TestRun_WithTemperature(t *testing.T) {
 
 	temp := 0.7
 	err := run(stdin, stdout, RunConfig{
-		ollamaURL: mockServer.URL,
-		model:     "test-model",
-		format:    "conventional",
+		apiType: APITypeOllama,
+		apiURL:  mockServer.URL,
+		model:   "test-model",
+		format:  "conventional",
 		options: &OllamaOptions{
 			Temperature: &temp,
 		},
@@ -323,7 +331,8 @@ func TestRun_WithMultipleOptions(t *testing.T) {
 	topK := 40
 	topP := 0.95
 	err := run(stdin, stdout, RunConfig{
-		ollamaURL: mockServer.URL,
+		apiType:   APITypeOllama,
+		apiURL:    mockServer.URL,
 		model:     "test-model",
 		format:    "conventional",
 		keepAlive: "10m",
@@ -366,10 +375,11 @@ func TestRun_NoOptionsWhenNotSet(t *testing.T) {
 	stdout := new(bytes.Buffer)
 
 	err := run(stdin, stdout, RunConfig{
-		ollamaURL: mockServer.URL,
-		model:     "test-model",
-		format:    "conventional",
-		options:   &OllamaOptions{},
+		apiType: APITypeOllama,
+		apiURL:  mockServer.URL,
+		model:   "test-model",
+		format:  "conventional",
+		options: &OllamaOptions{},
 	})
 
 	if err != nil {
@@ -398,9 +408,10 @@ func TestRun_WithStopSequences(t *testing.T) {
 	stdout := new(bytes.Buffer)
 
 	err := run(stdin, stdout, RunConfig{
-		ollamaURL: mockServer.URL,
-		model:     "test-model",
-		format:    "conventional",
+		apiType: APITypeOllama,
+		apiURL:  mockServer.URL,
+		model:   "test-model",
+		format:  "conventional",
 		options: &OllamaOptions{
 			Stop: []string{"STOP1", "STOP2"},
 		},
@@ -460,6 +471,93 @@ func TestOllamaOptions_HasOptions(t *testing.T) {
 	withTemp := &OllamaOptions{Temperature: &temp}
 	if !withTemp.HasOptions() {
 		t.Error("Expected options with temperature to return true")
+	}
+}
+
+func TestRun_OpenAICompatibleRequest(t *testing.T) {
+	var (
+		authHeader  string
+		receivedReq OpenAIChatCompletionRequest
+	)
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader = r.Header.Get("Authorization")
+		if err := json.NewDecoder(r.Body).Decode(&receivedReq); err != nil {
+			t.Fatalf("failed to decode request: %v", err)
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(OpenAIChatCompletionResponse{
+			Choices: []OpenAIChoice{
+				{Message: OpenAIMessage{Content: "fix: support openai endpoints"}},
+			},
+		})
+	}))
+	defer mockServer.Close()
+
+	stdin := strings.NewReader("diff --git a/file.txt b/file.txt")
+	stdout := new(bytes.Buffer)
+
+	temp := 0.4
+	topP := 0.8
+	numPredict := 64
+	seed := 7
+	err := run(stdin, stdout, RunConfig{
+		apiType: APITypeOpenAI,
+		apiURL:  mockServer.URL,
+		apiKey:  "secret-token",
+		model:   "gpt-4o-mini",
+		format:  "conventional",
+		options: &OllamaOptions{
+			Temperature: &temp,
+			TopP:        &topP,
+			NumPredict:  &numPredict,
+			Seed:        &seed,
+			Stop:        []string{"STOP"},
+		},
+	})
+
+	if err != nil {
+		t.Fatalf("run() returned error: %v", err)
+	}
+
+	if authHeader != "Bearer secret-token" {
+		t.Fatalf("expected Authorization header, got %q", authHeader)
+	}
+	if receivedReq.Model != "gpt-4o-mini" {
+		t.Fatalf("expected model gpt-4o-mini, got %q", receivedReq.Model)
+	}
+	if len(receivedReq.Messages) != 1 || receivedReq.Messages[0].Role != "user" {
+		t.Fatalf("expected one user message, got %#v", receivedReq.Messages)
+	}
+	if receivedReq.Temperature == nil || *receivedReq.Temperature != 0.4 {
+		t.Fatalf("expected temperature 0.4, got %#v", receivedReq.Temperature)
+	}
+	if receivedReq.TopP == nil || *receivedReq.TopP != 0.8 {
+		t.Fatalf("expected top_p 0.8, got %#v", receivedReq.TopP)
+	}
+	if receivedReq.MaxTokens == nil || *receivedReq.MaxTokens != 64 {
+		t.Fatalf("expected max_tokens 64, got %#v", receivedReq.MaxTokens)
+	}
+	if receivedReq.Seed == nil || *receivedReq.Seed != 7 {
+		t.Fatalf("expected seed 7, got %#v", receivedReq.Seed)
+	}
+	if len(receivedReq.Stop) != 1 || receivedReq.Stop[0] != "STOP" {
+		t.Fatalf("expected stop sequence, got %#v", receivedReq.Stop)
+	}
+	if stdout.String() != "fix: support openai endpoints\n" {
+		t.Fatalf("unexpected stdout: %q", stdout.String())
+	}
+}
+
+func TestDecodeResponse_OpenAICompatibleLegacyText(t *testing.T) {
+	body := strings.NewReader(`{"choices":[{"text":"feat: fallback text response"}]}`)
+
+	result, err := decodeResponse(body, APITypeOpenAI)
+	if err != nil {
+		t.Fatalf("decodeResponse returned error: %v", err)
+	}
+	if result != "feat: fallback text response" {
+		t.Fatalf("unexpected decoded response: %q", result)
 	}
 }
 

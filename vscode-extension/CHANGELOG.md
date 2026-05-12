@@ -5,6 +5,19 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-05-12
+
+### Added
+- **OpenAI-compatible endpoints**: Added support for `llamit.apiType`, `llamit.apiUrl`, and `llamit.apiKey` so Llamit can work with Ollama and OpenAI-compatible chat completion APIs.
+- **Deprecated setting migration notice**: Added a one-time in-editor migration prompt for users still configured with `llamit.ollamaUrl`.
+
+### Changed
+- **Configuration model**: `llamit.ollamaUrl` remains supported as a deprecated fallback while users migrate to `llamit.apiUrl` and `llamit.apiType`.
+- **Marketplace positioning**: Updated extension metadata and documentation to reflect multi-provider endpoint support.
+
+### Breaking
+- **Configuration migration**: Users should move from `llamit.ollamaUrl` to `llamit.apiUrl` and `llamit.apiType`. The old setting still works in 2.0.0 as a deprecated compatibility fallback, but future releases may remove it.
+
 ## [1.9.3] - 2026-04-25
 
 ### Changed

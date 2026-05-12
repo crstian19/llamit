@@ -4,7 +4,9 @@ import { execFile } from 'child_process';
 
 // Types for better testability
 export interface LlamitConfig {
-    ollamaUrl: string;
+    apiType: string;
+    apiUrl: string;
+    apiKey?: string;
     model: string;
     commitFormat: string;
     customFormat: string;
@@ -150,10 +152,15 @@ export function generateCommitMessage(
 ): Promise<string> {
     return new Promise<string>((resolve, reject) => {
         const args = [
-            '-ollama-url', config.ollamaUrl,
+            '-api-type', config.apiType,
+            '-api-url', config.apiUrl,
             '-model', config.model,
             '-format', config.commitFormat
         ];
+
+        if (config.apiKey) {
+            args.push('-api-key', config.apiKey);
+        }
 
         // Add custom template if format is 'custom' and template is provided
         if (config.commitFormat === 'custom' && config.customFormat) {

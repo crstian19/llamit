@@ -2,7 +2,10 @@ import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
 import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade, Repository } from './helpers';
-import { sendTelemetry, getTelemetryEvent, persistTrackedVersion } from './telemetry';
+import { sendTelemetry, getTelemetryEvent, persistTrackedVersion, TelemetryEventName } from './telemetry';
+
+const OLLAMA_URL_DEPRECATION_KEY = 'llamit.deprecation.ollamaUrl.dismissed';
+const OLLAMA_URL_2_0_UPDATE_NOTICE_KEY = 'llamit.deprecation.ollamaUrl.2.0.0.dismissed';
 
 async function getCurrentRepository(repositories: Repository[]): Promise<Repository | undefined> {
     if (repositories.length === 0) {
@@ -43,7 +46,9 @@ export async function getGitAPI() {
 export function getConfiguration(): LlamitConfig {
     const config = vscode.workspace.getConfiguration('llamit');
     return {
-        ollamaUrl: config.get<string>('ollamaUrl') || 'http://localhost:11434/api/generate',
+        apiType: config.get<string>('apiType') || 'ollama',
+        apiUrl: config.get<string>('apiUrl') || config.get<string>('ollamaUrl') || 'http://localhost:11434/api/generate',
+        apiKey: config.get<string>('apiKey') || undefined,
         model: config.get<string>('model') || 'qwen2.5-coder:7b',
         commitFormat: config.get<string>('commitFormat') || 'conventional',
         customFormat: config.get<string>('customFormat') || '',
@@ -65,6 +70,113 @@ export function getConfiguration(): LlamitConfig {
         mirostatTau: config.get<number>('mirostatTau'),
         stop: config.get<string>('stop')
     };
+}
+
+export function hasConfiguredValue(value: unknown): boolean {
+    return typeof value === 'string' ? value.trim() !== '' : value !== undefined && value !== null;
+}
+
+async function maybeHandleDeprecatedOllamaUrlSetting(
+    context: vscode.ExtensionContext,
+    currentVersion?: string,
+    activationEvent?: TelemetryEventName | null,
+    options?: { forceUpdateNotice?: boolean }
+): Promise<void> {
+    const config = vscode.workspace.getConfiguration('llamit');
+    const ollamaUrlValue = config.inspect<string>('ollamaUrl');
+    const apiUrlValue = config.inspect<string>('apiUrl');
+    const isDismissed = context.globalState.get<boolean>(OLLAMA_URL_DEPRECATION_KEY, false);
+    const updateNoticeDismissed = context.globalState.get<boolean>(OLLAMA_URL_2_0_UPDATE_NOTICE_KEY, false);
+
+    if (isDismissed) {
+        return;
+    }
+
+    const hasDeprecatedOllamaUrl =
+        hasConfiguredValue(ollamaUrlValue?.globalValue) ||
+        hasConfiguredValue(ollamaUrlValue?.workspaceValue) ||
+        hasConfiguredValue(ollamaUrlValue?.workspaceFolderValue);
+    const hasApiUrl =
+        hasConfiguredValue(apiUrlValue?.globalValue) ||
+        hasConfiguredValue(apiUrlValue?.workspaceValue) ||
+        hasConfiguredValue(apiUrlValue?.workspaceFolderValue);
+
+    if (!hasDeprecatedOllamaUrl || hasApiUrl) {
+        return;
+    }
+
+    if ((activationEvent === 'update' && currentVersion === '2.0.0' && !updateNoticeDismissed) || options?.forceUpdateNotice) {
+        const selection = await vscode.window.showInformationMessage(
+            'Llamit 2.0.0 replaced "llamit.ollamaUrl" with "llamit.apiUrl" and "llamit.apiType". Your current setting still works for now, but you should migrate it.',
+            'Migrate Settings',
+            'View Release Notes',
+            "Don't Show Again"
+        );
+
+        if (selection === 'Migrate Settings') {
+            await migrateDeprecatedOllamaUrlSetting(config, ollamaUrlValue);
+            return;
+        }
+
+        if (selection === 'View Release Notes') {
+            await vscode.env.openExternal(vscode.Uri.parse('https://github.com/crstian19/llamit/releases/tag/v2.0.0'));
+            return;
+        }
+
+        if (selection === "Don't Show Again") {
+            await context.globalState.update(OLLAMA_URL_2_0_UPDATE_NOTICE_KEY, true);
+        }
+
+        return;
+    }
+
+    const selection = await vscode.window.showInformationMessage(
+        'The setting "llamit.ollamaUrl" is deprecated. Please migrate to "llamit.apiUrl" and "llamit.apiType".',
+        'Migrate Settings',
+        'Open Settings',
+        "Don't Show Again"
+    );
+
+    if (selection === 'Migrate Settings') {
+        await migrateDeprecatedOllamaUrlSetting(config, ollamaUrlValue);
+        return;
+    }
+
+    if (selection === 'Open Settings') {
+        await vscode.commands.executeCommand('workbench.action.openSettings', 'llamit');
+        return;
+    }
+
+    if (selection === "Don't Show Again") {
+        await context.globalState.update(OLLAMA_URL_DEPRECATION_KEY, true);
+    }
+}
+
+async function migrateDeprecatedOllamaUrlSetting(
+    config: vscode.WorkspaceConfiguration,
+    ollamaUrlValue: ReturnType<vscode.WorkspaceConfiguration['inspect']>
+): Promise<void> {
+    const target = getConfigurationTarget(ollamaUrlValue);
+    const resolvedOllamaUrl = config.get<string>('ollamaUrl');
+
+    if (resolvedOllamaUrl) {
+        await config.update('apiUrl', resolvedOllamaUrl, target);
+    }
+    await config.update('apiType', 'ollama', target);
+    await vscode.window.showInformationMessage('Llamit settings migrated to "llamit.apiUrl" and "llamit.apiType".');
+}
+
+function getConfigurationTarget(inspectedValue: ReturnType<vscode.WorkspaceConfiguration['inspect']>): vscode.ConfigurationTarget {
+    if (!inspectedValue) {
+        return vscode.ConfigurationTarget.Global;
+    }
+    if (inspectedValue.workspaceFolderValue !== undefined) {
+        return vscode.ConfigurationTarget.WorkspaceFolder;
+    }
+    if (inspectedValue.workspaceValue !== undefined) {
+        return vscode.ConfigurationTarget.Workspace;
+    }
+    return vscode.ConfigurationTarget.Global;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -132,11 +244,14 @@ export function activate(context: vscode.ExtensionContext) {
     const currentVersion = context.extension.packageJSON.version as string | undefined;
     if (currentVersion) {
         const event = getTelemetryEvent(context, currentVersion);
+        maybeHandleDeprecatedOllamaUrlSetting(context, currentVersion, event).catch(() => { /* ignore */ });
         if (event) {
             sendTelemetry(context, event, currentVersion).then(() => {
                 persistTrackedVersion(context, currentVersion);
             }).catch(() => { /* ignore */ });
         }
+    } else {
+        maybeHandleDeprecatedOllamaUrlSetting(context).catch(() => { /* ignore */ });
     }
 }
 

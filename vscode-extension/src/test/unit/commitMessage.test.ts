@@ -5,7 +5,8 @@ suite('Commit Message Generation Tests', () => {
     test('generateCommitMessage should accept correct parameters', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
-            ollamaUrl: 'http://localhost:11434/api/generate',
+            apiType: 'ollama',
+            apiUrl: 'http://localhost:11434/api/generate',
             model: 'qwen2.5-coder:7b',
             commitFormat: 'conventional',
             customFormat: ''
@@ -29,7 +30,8 @@ suite('Commit Message Generation Tests', () => {
     test('should handle empty diff string', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
-            ollamaUrl: 'http://localhost:11434/api/generate',
+            apiType: 'ollama',
+            apiUrl: 'http://localhost:11434/api/generate',
             model: 'test-model',
             commitFormat: 'conventional',
             customFormat: ''
@@ -47,7 +49,8 @@ suite('Commit Message Generation Tests', () => {
     test('should handle multiline diff', () => {
         const binaryPath = '/path/to/cli';
         const config: LlamitConfig = {
-            ollamaUrl: 'http://localhost:11434/api/generate',
+            apiType: 'openai-compatible',
+            apiUrl: 'https://api.openai.com/v1/chat/completions',
             model: 'test-model',
             commitFormat: 'conventional',
             customFormat: ''

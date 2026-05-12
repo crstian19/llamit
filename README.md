@@ -10,270 +10,208 @@
 ![Open VSX Downloads](https://img.shields.io/open-vsx/dt/Crstian/llamit?style=for-the-badge&logo=vscodium&logoColor=white&label=Open%20VSX%20downloads&color=blueviolet)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
 ![Go Version](https://img.shields.io/badge/Go-1.25.6-00ADD8?style=for-the-badge&logo=go&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-powered-black?style=for-the-badge&logo=ollama&logoColor=white)
 
 > ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
 
-**Generate semantic commit messages using your local Ollama LLM instance.**
+**Generate semantic commit messages using Ollama or any OpenAI-compatible endpoint.**
 
-*No cloud services, no API keys - everything runs locally.*
+*Run it locally with Ollama or point it at the chat completion API you already use.*
 
 </div>
 
-## Features
+## Highlights
 
-- 🚀 **Generate commit messages instantly** from staged changes
-- 🔒 **Fully local** - uses your own Ollama instance
-- 📝 **Conventional Commits** - follows standard commit message format
-- ⚡ **Fast** - powered by a lightweight Go CLI
-- 🎨 **VS Code integration** - seamless SCM toolbar button
+- Generate commit messages directly from VS Code Source Control
+- Support for `ollama` and `openai-compatible` APIs
+- Full custom endpoint support through a configurable URL
+- Conventional, Angular, Gitmoji, Karma, Semantic, Google, and custom formats
+- Go CLI backend with retry logic and clean stdout/stderr separation
+
+## What Changed in 2.0.0
+
+`2.0.0` is the release where Llamit stops being Ollama-only.
+
+- New settings:
+  - `llamit.apiType`
+  - `llamit.apiUrl`
+  - `llamit.apiKey`
+- Deprecated setting:
+  - `llamit.ollamaUrl`
+- Backward compatibility:
+  - `llamit.ollamaUrl` still works as a fallback
+  - the extension now shows a one-time migration prompt for users still on the old setting
 
 ## Prerequisites
 
-- [Ollama](https://ollama.ai/) installed and running locally
-- A compatible model (default: `qwen2.5-coder:7b`, but any model works)
 - VS Code 1.85.0 or higher
+- One of:
+  - [Ollama](https://ollama.ai/) running locally
+  - an OpenAI-compatible `/v1/chat/completions` endpoint
+- A valid model name for the endpoint you choose
 
 ## Installation
 
-### Option 1: From VS Code Marketplace (Recommended)
+### Option 1: VS Code Marketplace
+
 1. Open VS Code
-2. Go to Extensions view (`Ctrl+Shift+X` / `Cmd+Shift+X`)
-3. Search for "Llamit"
-4. Click **Install**
+2. Go to Extensions
+3. Search for `Llamit`
+4. Install the extension
 
 ### Option 2: Build from Source
+
 ```bash
-# Clone the repository
 git clone https://github.com/crstian19/llamit.git
 cd llamit
 
-# Build the Go CLI
 cd go-cli
 go build -o cli main.go
 
-# Build the VS Code extension
 cd ../vscode-extension
 npm install
-npm run compile
-
-# Package the extension
-npx vsce package
-# Install the generated .vsix file in VS Code
-```
+npm run vscode:prepublish
 ```
 
-## Usage
-
-1. **Start Ollama**: Make sure Ollama is running
-   ```bash
-   ollama serve
-   ```
-
-2. **Stage your changes**: Use Git to stage the files you want to commit
-   ```bash
-   git add .
-   ```
-
-3. **Generate commit message**:
-   - Click the ✨ **Llamit** button in the Source Control toolbar, or
-   - Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-   - Run: `Llamit: Generate Commit Message`
-
-4. **Review and commit**: The generated message appears in the commit input box. Review it and commit!
+Then install the generated `.vsix` or launch the extension in development mode with `F5`.
 
 ## Configuration
 
-You can customize Llamit in VS Code settings:
+Llamit is configured through VS Code extension settings.
+
+### Ollama
 
 ```json
 {
-  "llamit.ollamaUrl": "http://localhost:11434/api/generate",
+  "llamit.apiType": "ollama",
+  "llamit.apiUrl": "http://localhost:11434/api/generate",
   "llamit.model": "qwen2.5-coder:7b",
-  "llamit.commitFormat": "conventional",
-  "llamit.customFormat": ""
+  "llamit.commitFormat": "conventional"
 }
 ```
+
+### OpenAI-Compatible Endpoint
+
+```json
+{
+  "llamit.apiType": "openai-compatible",
+  "llamit.apiUrl": "https://api.openai.com/v1/chat/completions",
+  "llamit.apiKey": "",
+  "llamit.model": "gpt-4o-mini",
+  "llamit.commitFormat": "conventional"
+}
+```
+
+If `llamit.apiKey` is empty, the CLI falls back to:
+
+1. `LLAMIT_API_KEY`
+2. `OPENAI_API_KEY`
 
 ### Settings
 
-- **`llamit.ollamaUrl`**: The Ollama API endpoint URL (default: `http://localhost:11434/api/generate`)
-- **`llamit.model`**: The model to use for generation (default: `qwen2.5-coder:7b`)
-- **`llamit.commitFormat`**: The commit message format to use (default: `conventional`)
-  - Available formats: `conventional`, `angular`, `gitmoji`, `karma`, `semantic`, `google`, `custom`
-- **`llamit.customFormat`**: Custom format template (only used when `commitFormat` is set to `custom`)
+- `llamit.apiType`: `ollama` or `openai-compatible`
+- `llamit.apiUrl`: full API URL to call
+- `llamit.apiKey`: optional API key for OpenAI-compatible endpoints
+- `llamit.model`: model name to send to the provider
+- `llamit.commitFormat`: commit message style
+- `llamit.customFormat`: custom prompt template when `commitFormat=custom`
 
-### Commit Message Formats
+Advanced settings remain available. Some of them are Ollama-specific, while shared fields such as `temperature`, `topP`, `numPredict`, `seed`, and `stop` are forwarded when supported by the selected API type.
 
-Llamit supports multiple commit message formats to match your team's conventions:
+## Migration from `llamit.ollamaUrl`
 
-#### Conventional Commits (Default)
-```
-feat(auth): add user login functionality
-
-Implements OAuth2 authentication flow
-```
-
-#### Angular
-```
-feat(core): implement user authentication
-
-- Add login service
-- Add auth guard
-- Update routing
-
-Closes #123
-```
-
-#### Gitmoji
-```
-✨ feat(api): add new endpoint for user profiles
-
-Implements GET /api/users/:id endpoint
-```
-
-#### Karma
-```
-feat(ui): add dark mode toggle
-
-Implements theme switching functionality
-```
-
-#### Semantic
-```
-feat: implement user authentication system
-
-Complete OAuth2 integration with JWT tokens
-```
-
-#### Google
-```
-Add user authentication system
-
-Implements a complete authentication flow using OAuth2 and JWT tokens.
-Includes login, logout, and token refresh functionality.
-```
-
-#### Custom Format
-Set `llamit.commitFormat` to `custom` and provide your own template in `llamit.customFormat`:
+If you already use Llamit with:
 
 ```json
 {
-  "llamit.commitFormat": "custom",
-  "llamit.customFormat": "Generate a simple commit message:\n<action>: <description>\n\nRules:\n1. Keep it under 50 characters\n2. Use imperative mood"
+  "llamit.ollamaUrl": "http://localhost:11434/api/generate"
 }
 ```
 
-### Recommended Models
+migrate to:
 
-Any Ollama model works, but these are optimized for code:
-- `qwen2.5-coder:7b` - Great balance of quality and speed (default)
-- `qwen2.5-coder:14b` - Better quality, slower
-- `codellama:13b` - Good alternative
-- `deepseek-coder:6.7b` - Fast and efficient
+```json
+{
+  "llamit.apiType": "ollama",
+  "llamit.apiUrl": "http://localhost:11434/api/generate"
+}
+```
+
+The extension now detects the deprecated setting and offers:
+
+- `Migrate Settings`
+- `Open Settings`
+- `Don't Show Again`
+
+## Usage
+
+1. Stage changes, or leave them unstaged if you want the diff fallback behavior
+2. Open Source Control
+3. Run `Llamit: Generate Commit Message`
+4. Review the generated message in the SCM input box
+5. Commit as usual
 
 ## Architecture
 
 Llamit consists of two components:
 
-### 1. Go CLI (`go-cli/`)
-A standalone command-line tool that:
-- Reads git diffs from stdin
-- Sends them to Ollama with a prompt template
-- Returns a formatted commit message
-- Implements retry logic with exponential backoff
-- Handles errors gracefully
+### Go CLI (`go-cli/`)
 
-### 2. VS Code Extension (`vscode-extension/`)
-A TypeScript extension that:
-- Integrates with VS Code's Source Control view
-- Executes `git diff --cached` to get staged changes
-- Spawns the Go CLI as a subprocess
-- Populates the commit message box with the result
+- reads Git diff from `stdin`
+- builds the prompt from the selected commit format
+- calls either:
+  - Ollama `/api/generate`
+  - an OpenAI-compatible `/v1/chat/completions` endpoint
+- writes the commit message to `stdout`
+- logs operational details to `stderr`
 
-## Development
+### VS Code Extension (`vscode-extension/`)
 
-### Running Tests
-
-**Go CLI:**
-```bash
-cd go-cli
-go test -v              # All tests
-go test -v -short       # Unit tests only (skip integration)
-```
-
-**VS Code Extension:**
-```bash
-cd vscode-extension
-npm run test:unit       # Fast unit tests
-npm test               # Full integration tests
-```
-
-### File Structure
-
-```
-llamit/
-├── go-cli/              # Go CLI binary
-│   ├── main.go          # Core logic
-│   ├── main_test.go     # Comprehensive tests
-│   └── go.mod           # Go module file
-├── vscode-extension/    # VS Code extension
-│   ├── src/
-│   │   ├── extension.ts # Extension entry point
-│   │   └── test/        # Unit and integration tests
-│   ├── package.json     # Extension manifest
-│   └── tsconfig.json    # TypeScript config
-└── CLAUDE.md           # AI assistant documentation
-```
+- integrates with the VS Code Git extension
+- resolves the current repository
+- uses staged changes first, then falls back to working tree changes
+- spawns the bundled Go CLI for the current platform
+- writes the generated message into the SCM input box
 
 ## Testing
 
-Both components have comprehensive test coverage:
+### Go CLI
 
-- **Go CLI**: 6 test cases covering success, errors, retries, and integration
-- **VS Code Extension**: Unit tests + integration tests for all core functions
+```bash
+cd go-cli
+go test -v -short
+go test -v
+```
 
-See [CLAUDE.md](./CLAUDE.md) for detailed testing information.
+Notes:
 
-## Contributing
+- `go test -v -short` runs the unit suite
+- `go test -v` includes the live Ollama integration test
 
-Contributions are welcome! This project was vibecoded, but that doesn't mean it can't be improved by humans too 😊
+### VS Code Extension
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+```bash
+cd vscode-extension
+npm run test:unit
+npm test
+```
 
 ## Releases
 
-📋 **See all release notes on the [GitHub Releases page](https://github.com/crstian19/llamit/releases)**
+Llamit uses automated CI/CD for releases.
 
-Llamit uses automated CI/CD for releases:
-- ✅ Automatic releases on merge to `main`
-- 📦 Platform-specific packaging (6 platforms)
-- 🚀 Automatic publishing to VS Code Marketplace and Open VSX
+- merge to `main`
+- make sure `vscode-extension/package.json` has a new version
+- update `vscode-extension/CHANGELOG.md`
+- the workflow in [.github/workflows/publish.yml](./.github/workflows/publish.yml) creates the release and publishes marketplace packages
 
-For maintainers: See [.github/RELEASE.md](.github/RELEASE.md) for detailed release process documentation.
+For maintainers, the full process is documented in [.github/RELEASE.md](./.github/RELEASE.md).
 
-## Telemetry
+## Contributing
 
-Llamit collects minimal anonymous usage data (install/update events and editor name) to understand adoption across editors like VS Code, VSCodium, and Cursor. No PII, code, or usage frequency is ever collected.
+1. Fork the repository
+2. Create a branch
+3. Make changes
+4. Run the relevant test suite
+5. Open a pull request
 
-You can opt out at any time by setting `llamit.telemetry.enabled` to `false`. See [USAGE_DATA.md](./USAGE_DATA.md) for full details.
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
-## Acknowledgments
-
-- Built with [Claude](https://claude.ai) - AI pair programming at its finest
-- Powered by [Ollama](https://ollama.ai) - local LLM runtime
-- Inspired by the need for better commit messages everywhere
-
----
-
-**Made with 🤖 and ✨ through vibecoding**
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contributor workflow.

@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+type APIType string
+
+const (
+	APITypeOllama APIType = "ollama"
+	APITypeOpenAI APIType = "openai-compatible"
+)
+
 type OllamaGenerateRequest struct {
 	Model     string                 `json:"model"`
 	Prompt    string                 `json:"prompt"`
@@ -24,6 +31,35 @@ type OllamaGenerateRequest struct {
 
 type OllamaGenerateResponse struct {
 	Response string `json:"response"`
+}
+
+type OpenAIChatCompletionRequest struct {
+	Model       string              `json:"model"`
+	Messages    []OpenAIChatMessage `json:"messages"`
+	Temperature *float64            `json:"temperature,omitempty"`
+	TopP        *float64            `json:"top_p,omitempty"`
+	MaxTokens   *int                `json:"max_tokens,omitempty"`
+	Stop        []string            `json:"stop,omitempty"`
+	Seed        *int                `json:"seed,omitempty"`
+	Stream      bool                `json:"stream"`
+}
+
+type OpenAIChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type OpenAIChatCompletionResponse struct {
+	Choices []OpenAIChoice `json:"choices"`
+}
+
+type OpenAIChoice struct {
+	Message OpenAIMessage `json:"message"`
+	Text    string        `json:"text"`
+}
+
+type OpenAIMessage struct {
+	Content string `json:"content"`
 }
 
 type OllamaOptions struct {
@@ -242,7 +278,9 @@ func getFormatTemplate(format string, customTemplate string) string {
 }
 
 type RunConfig struct {
-	ollamaURL      string
+	apiType        APIType
+	apiURL         string
+	apiKey         string
 	model          string
 	format         string
 	customTemplate string
@@ -251,7 +289,7 @@ type RunConfig struct {
 }
 
 func run(stdin io.Reader, stdout io.Writer, config RunConfig) error {
-	log.Printf("Starting commit generation. Ollama URL: %s, Model: %s, Format: %s", config.ollamaURL, config.model, config.format)
+	log.Printf("Starting commit generation. API Type: %s, API URL: %s, Model: %s, Format: %s", config.apiType, config.apiURL, config.model, config.format)
 
 	diffBytes, err := io.ReadAll(stdin)
 	if err != nil {
@@ -267,34 +305,32 @@ func run(stdin io.Reader, stdout io.Writer, config RunConfig) error {
 	formatTemplate := getFormatTemplate(config.format, config.customTemplate)
 	prompt := fmt.Sprintf(formatTemplate, string(diffBytes))
 
-	requestData := OllamaGenerateRequest{
-		Model:     config.model,
-		Prompt:    prompt,
-		Stream:    false,
-		KeepAlive: config.keepAlive,
-	}
-
-	if config.options != nil && config.options.HasOptions() {
-		requestData.Options = config.options.ToMap()
-	}
-
-	jsonData, err := json.Marshal(requestData)
+	jsonData, err := buildRequestPayload(config, prompt)
 	if err != nil {
-		log.Printf("ERROR: error marshalling JSON for Ollama: %v", err)
+		log.Printf("ERROR: error marshalling JSON request: %v", err)
 		return fmt.Errorf("error marshalling JSON: %w", err)
 	}
-	log.Print("JSON request for Ollama prepared.")
+	log.Print("JSON request prepared.")
 
 	const maxRetries = 3
 	var resp *http.Response
 	var lastErr error
 
 	for i := 0; i <= maxRetries; i++ {
-		log.Printf("Making HTTP request to Ollama at: %s (Attempt %d/%d)", config.ollamaURL, i+1, maxRetries+1)
+		log.Printf("Making HTTP request to %s API at: %s (Attempt %d/%d)", config.apiType, config.apiURL, i+1, maxRetries+1)
 
 		requestBody := bytes.NewBuffer(jsonData)
+		req, err := http.NewRequest(http.MethodPost, config.apiURL, requestBody)
+		if err != nil {
+			log.Printf("ERROR: error creating HTTP request: %v", err)
+			return fmt.Errorf("error creating HTTP request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		if config.apiType == APITypeOpenAI && config.apiKey != "" {
+			req.Header.Set("Authorization", "Bearer "+config.apiKey)
+		}
 
-		resp, lastErr = http.Post(config.ollamaURL, "application/json", requestBody)
+		resp, lastErr = http.DefaultClient.Do(req)
 		if lastErr == nil && resp.StatusCode == http.StatusOK {
 			log.Printf("HTTP request completed with status: %d", resp.StatusCode)
 			break
@@ -325,33 +361,31 @@ func run(stdin io.Reader, stdout io.Writer, config RunConfig) error {
 			if resp != nil {
 				resp.Body.Close()
 			}
-			log.Printf("ERROR: error making HTTP request to Ollama after %d attempts: %v", i+1, lastErr)
-			return fmt.Errorf("error making request to Ollama after %d attempts: %w", i+1, lastErr)
+			log.Printf("ERROR: error making HTTP request to %s API after %d attempts: %v", config.apiType, i+1, lastErr)
+			return fmt.Errorf("error making request to %s API after %d attempts: %w", config.apiType, i+1, lastErr)
 		}
 		if resp != nil {
 			defer resp.Body.Close()
 			body, _ := io.ReadAll(resp.Body)
-			log.Printf("ERROR: Ollama API returned error (status %d): %s", resp.StatusCode, string(body))
-			return fmt.Errorf("error from Ollama API (status %d): %s", resp.StatusCode, string(body))
+			log.Printf("ERROR: %s API returned error (status %d): %s", config.apiType, resp.StatusCode, string(body))
+			return fmt.Errorf("error from %s API (status %d): %s", config.apiType, resp.StatusCode, string(body))
 		}
 	}
 	if resp == nil || resp.StatusCode != http.StatusOK {
-		log.Print("ERROR: Could not get a successful response from Ollama after multiple attempts.")
-		return fmt.Errorf("could not get a successful response from Ollama after multiple attempts")
+		log.Printf("ERROR: Could not get a successful response from %s API after multiple attempts.", config.apiType)
+		return fmt.Errorf("could not get a successful response from %s API after multiple attempts", config.apiType)
 	}
 	defer resp.Body.Close()
-	log.Print("Successful response from Ollama.")
+	log.Printf("Successful response from %s API.", config.apiType)
 
-	var ollamaResp OllamaGenerateResponse
-	if err := json.NewDecoder(resp.Body).Decode(&ollamaResp); err != nil {
-		log.Printf("ERROR: error decoding Ollama response: %v", err)
-		return fmt.Errorf("error decoding Ollama response: %w", err)
+	commitMsg, err := decodeResponse(resp.Body, config.apiType)
+	if err != nil {
+		log.Printf("ERROR: error decoding %s response: %v", config.apiType, err)
+		return fmt.Errorf("error decoding %s response: %w", config.apiType, err)
 	}
-	log.Print("Ollama response decoded successfully.")
+	log.Printf("%s response decoded successfully.", config.apiType)
 
-	commitMsg := cleanResponse(ollamaResp.Response)
-
-	_, err = fmt.Fprint(stdout, commitMsg)
+	_, err = fmt.Fprintln(stdout, commitMsg)
 	if err != nil {
 		log.Printf("ERROR: error writing to stdout: %v", err)
 		return fmt.Errorf("error writing to stdout: %w", err)
@@ -359,6 +393,115 @@ func run(stdin io.Reader, stdout io.Writer, config RunConfig) error {
 	log.Print("Commit message sent to stdout.")
 
 	return nil
+}
+
+func buildRequestPayload(config RunConfig, prompt string) ([]byte, error) {
+	switch config.apiType {
+	case APITypeOpenAI:
+		requestData := OpenAIChatCompletionRequest{
+			Model: config.model,
+			Messages: []OpenAIChatMessage{
+				{
+					Role:    "user",
+					Content: prompt,
+				},
+			},
+			Temperature: getOpenAIFloatOption(config.options, func(o *OllamaOptions) *float64 { return o.Temperature }),
+			TopP:        getOpenAIFloatOption(config.options, func(o *OllamaOptions) *float64 { return o.TopP }),
+			MaxTokens:   getOpenAIIntOption(config.options, func(o *OllamaOptions) *int { return o.NumPredict }),
+			Stop:        getOpenAIStopOption(config.options),
+			Seed:        getOpenAIIntOption(config.options, func(o *OllamaOptions) *int { return o.Seed }),
+			Stream:      false,
+		}
+		return json.Marshal(requestData)
+	case APITypeOllama:
+		fallthrough
+	default:
+		requestData := OllamaGenerateRequest{
+			Model:     config.model,
+			Prompt:    prompt,
+			Stream:    false,
+			KeepAlive: config.keepAlive,
+		}
+
+		if config.options != nil && config.options.HasOptions() {
+			requestData.Options = config.options.ToMap()
+		}
+
+		return json.Marshal(requestData)
+	}
+}
+
+func decodeResponse(body io.Reader, apiType APIType) (string, error) {
+	switch apiType {
+	case APITypeOpenAI:
+		var openAIResp OpenAIChatCompletionResponse
+		if err := json.NewDecoder(body).Decode(&openAIResp); err != nil {
+			return "", err
+		}
+		if len(openAIResp.Choices) == 0 {
+			return "", errors.New("openai-compatible response did not include choices")
+		}
+
+		content := openAIResp.Choices[0].Message.Content
+		if content == "" {
+			content = openAIResp.Choices[0].Text
+		}
+		if strings.TrimSpace(content) == "" {
+			return "", errors.New("openai-compatible response did not include message content")
+		}
+		return cleanResponse(content), nil
+	case APITypeOllama:
+		fallthrough
+	default:
+		var ollamaResp OllamaGenerateResponse
+		if err := json.NewDecoder(body).Decode(&ollamaResp); err != nil {
+			return "", err
+		}
+		return cleanResponse(ollamaResp.Response), nil
+	}
+}
+
+func getOpenAIFloatOption(options *OllamaOptions, getter func(*OllamaOptions) *float64) *float64 {
+	if options == nil {
+		return nil
+	}
+	return getter(options)
+}
+
+func getOpenAIIntOption(options *OllamaOptions, getter func(*OllamaOptions) *int) *int {
+	if options == nil {
+		return nil
+	}
+	return getter(options)
+}
+
+func getOpenAIStopOption(options *OllamaOptions) []string {
+	if options == nil || len(options.Stop) == 0 {
+		return nil
+	}
+	return options.Stop
+}
+
+func normalizeAPIType(value string) APIType {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "ollama":
+		return APITypeOllama
+	case "openai", "openai-compatible", "openai_compatible":
+		return APITypeOpenAI
+	default:
+		return APIType(strings.TrimSpace(value))
+	}
+}
+
+func resolveAPIKey(explicitValue string) string {
+	if explicitValue != "" {
+		return explicitValue
+	}
+	if value := strings.TrimSpace(os.Getenv("LLAMIT_API_KEY")); value != "" {
+		return value
+	}
+	return strings.TrimSpace(os.Getenv("OPENAI_API_KEY"))
 }
 
 func cleanResponse(s string) string {
@@ -386,11 +529,14 @@ func cleanResponse(s string) string {
 }
 
 func main() {
-	ollamaURL := flag.String("ollama-url", "http://localhost:11434/api/generate", "Ollama API URL")
-	model := flag.String("model", "qwen2.5-coder:7b", "Ollama model to use")
+	apiType := flag.String("api-type", string(APITypeOllama), "API compatibility to use (ollama, openai-compatible)")
+	apiURL := flag.String("api-url", "http://localhost:11434/api/generate", "LLM API URL")
+	ollamaURL := flag.String("ollama-url", "", "Deprecated alias for -api-url")
+	apiKey := flag.String("api-key", "", "API key for OpenAI-compatible endpoints (falls back to LLAMIT_API_KEY or OPENAI_API_KEY)")
+	model := flag.String("model", "qwen2.5-coder:7b", "Model to use")
 	format := flag.String("format", "conventional", "Commit message format (conventional, angular, gitmoji, karma, semantic, google, custom)")
 	customTemplate := flag.String("custom-template", "", "Custom format template (only used when format is 'custom')")
-	keepAlive := flag.String("keep-alive", "", "How long to keep the model loaded in memory (e.g., '5m', '60', '-1' for always)")
+	keepAlive := flag.String("keep-alive", "", "How long to keep the model loaded in memory for Ollama (e.g., '5m', '60', '-1' for always)")
 	version := flag.Bool("version", false, "Print version and exit")
 
 	temperature := flag.Float64("temperature", 0, "Temperature for the model (0.0-2.0)")
@@ -413,7 +559,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("Llamit CLI v0.3.0-ollama-options")
+		fmt.Println("Llamit CLI v0.4.0-api-compat")
 		return
 	}
 
@@ -439,8 +585,15 @@ func main() {
 		Stop:          parseStopString(*stop),
 	}
 
+	resolvedAPIURL := *apiURL
+	if *ollamaURL != "" {
+		resolvedAPIURL = *ollamaURL
+	}
+
 	config := RunConfig{
-		ollamaURL:      *ollamaURL,
+		apiType:        normalizeAPIType(*apiType),
+		apiURL:         resolvedAPIURL,
+		apiKey:         resolveAPIKey(*apiKey),
 		model:          *model,
 		format:         *format,
 		customTemplate: *customTemplate,
