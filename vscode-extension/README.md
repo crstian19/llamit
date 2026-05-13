@@ -5,7 +5,6 @@
 <img src="https://cdn.crstian.me/llamit.jpg" alt="Llamit Logo" width="200"/>
 
 ![License](https://img.shields.io/github/license/crstian19/llamit?style=for-the-badge&logo=unlicense&logoColor=white)
-![VS Code Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/Crstian.llamit?style=for-the-badge&logo=visualstudiocode&logoColor=white&label=VS%20Code%20Marketplace)
 ![Open VSX Downloads](https://img.shields.io/open-vsx/dt/Crstian/llamit?style=for-the-badge&logo=vscodium&logoColor=white&label=Open%20VSX&color=blueviolet)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85.0+-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
 ![Go Version](https://img.shields.io/badge/Go-1.25.6-00ADD8?style=for-the-badge&logo=go&logoColor=white)
@@ -13,24 +12,24 @@
 
 > ✨ **Fully vibecoded** - This project was entirely developed using AI assistance, showcasing the power of AI-driven development.
 
-**Generate semantic commit messages using your local Ollama LLM instance.**
+**Generate semantic commit messages using Ollama or any OpenAI-compatible endpoint.**
 
-*No cloud services, no API keys - everything runs locally.*
+*Run it locally with Ollama, or point it at the API gateway/model endpoint you already use.*
 
 </div>
 
 ## Features
 
 - 🚀 **Generate commit messages instantly** from staged changes
-- 🔒 **Fully local** - uses your own Ollama instance
+- 🔌 **Provider-flexible** - works with Ollama and OpenAI-compatible APIs
 - 📝 **Conventional Commits** - follows standard commit message format
 - ⚡ **Fast** - powered by a lightweight Go CLI
 - 🎨 **VS Code integration** - seamless SCM toolbar button
 
 ## Prerequisites
 
-- [Ollama](https://ollama.ai/) installed and running locally
-- A compatible model (default: `qwen2.5-coder:7b`, but any model works)
+- Either [Ollama](https://ollama.ai/) running locally or an OpenAI-compatible API endpoint
+- A compatible model name for the selected endpoint (default: `qwen2.5-coder:7b`)
 - VS Code 1.85.0 or higher
 
 ## Installation
@@ -60,14 +59,15 @@ npm run compile
 npx vsce package
 # Install the generated .vsix file in VS Code
 ```
-```
 
 ## Usage
 
-1. **Start Ollama**: Make sure Ollama is running
+1. **Start your model endpoint**
+   - For Ollama:
    ```bash
    ollama serve
    ```
+   - For OpenAI-compatible APIs: make sure you have the full `chat/completions` URL and, if required, an API key
 
 2. **Stage your changes**: Use Git to stage the files you want to commit
    ```bash
@@ -87,7 +87,8 @@ You can customize Llamit in VS Code settings:
 
 ```json
 {
-  "llamit.ollamaUrl": "http://localhost:11434/api/generate",
+  "llamit.apiType": "ollama",
+  "llamit.apiUrl": "http://localhost:11434/api/generate",
   "llamit.model": "qwen2.5-coder:7b",
   "llamit.commitFormat": "conventional",
   "llamit.customFormat": ""
@@ -96,11 +97,55 @@ You can customize Llamit in VS Code settings:
 
 ### Settings
 
-- **`llamit.ollamaUrl`**: The Ollama API endpoint URL (default: `http://localhost:11434/api/generate`)
+- **`llamit.apiType`**: Request/response compatibility mode (default: `ollama`)
+  - Available values: `ollama`, `openai-compatible`
+- **`llamit.apiUrl`**: Full API URL to call
+  - Ollama example: `http://localhost:11434/api/generate`
+  - OpenAI-compatible example: `https://api.openai.com/v1/chat/completions`
+- **`llamit.apiKey`**: Optional API key for OpenAI-compatible endpoints
+  - If empty, Llamit falls back to `LLAMIT_API_KEY` and then `OPENAI_API_KEY`
+- **`llamit.ollamaUrl`**: Deprecated legacy setting kept for backward compatibility
 - **`llamit.model`**: The model to use for generation (default: `qwen2.5-coder:7b`)
 - **`llamit.commitFormat`**: The commit message format to use (default: `conventional`)
   - Available formats: `conventional`, `angular`, `gitmoji`, `karma`, `semantic`, `google`, `custom`
 - **`llamit.customFormat`**: Custom format template (only used when `commitFormat` is set to `custom`)
+- **`llamit.keepAlive`**: Ollama-only keep-alive control
+- Advanced sampling settings are passed through fully for Ollama and partially for OpenAI-compatible APIs where the field exists (`temperature`, `topP`, `numPredict`, `seed`, `stop`)
+
+### Migrating from `llamit.ollamaUrl`
+
+`llamit.ollamaUrl` is deprecated.
+
+If you already have:
+
+```json
+{
+  "llamit.ollamaUrl": "http://localhost:11434/api/generate"
+}
+```
+
+migrate to:
+
+```json
+{
+  "llamit.apiType": "ollama",
+  "llamit.apiUrl": "http://localhost:11434/api/generate"
+}
+```
+
+The extension includes a one-time migration prompt for users still relying on `llamit.ollamaUrl`.
+
+### Example: OpenAI-Compatible Endpoint
+
+```json
+{
+  "llamit.apiType": "openai-compatible",
+  "llamit.apiUrl": "https://api.openai.com/v1/chat/completions",
+  "llamit.model": "gpt-4o-mini",
+  "llamit.apiKey": "",
+  "llamit.commitFormat": "conventional"
+}
+```
 
 ### Commit Message Formats
 
@@ -178,7 +223,7 @@ Llamit consists of two components:
 ### 1. Go CLI (`go-cli/`)
 A standalone command-line tool that:
 - Reads git diffs from stdin
-- Sends them to Ollama with a prompt template
+- Sends them to the configured LLM endpoint with a prompt template
 - Returns a formatted commit message
 - Implements retry logic with exponential backoff
 - Handles errors gracefully
@@ -234,6 +279,24 @@ Both components have comprehensive test coverage:
 
 See [CLAUDE.md](./CLAUDE.md) for detailed testing information.
 
+## Telemetry
+
+Llamit collects minimal anonymous telemetry for extension `install` and `update` events only.
+
+- No code, diffs, commit messages, file paths, or repository names are collected
+- No personal identifiers are collected
+- Llamit respects VS Code's global telemetry settings
+
+You can disable Llamit-specific telemetry with:
+
+```json
+{
+  "llamit.telemetry.enabled": false
+}
+```
+
+See [USAGE_DATA.md](../USAGE_DATA.md) for the full policy.
+
 ## Contributing
 
 Contributions are welcome! This project was vibecoded, but that doesn't mean it can't be improved by humans too 😊
@@ -250,22 +313,9 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 
-- Built with [Claude](https://claude.ai) - AI pair programming at its finest
-- Powered by [Ollama](https://ollama.ai) - local LLM runtime
+- Built with [Claude](https://claude.ai) and other AI coding tools
+- Powered by Ollama and OpenAI-compatible LLM backends
 - Inspired by the need for better commit messages everywhere
-
-## Release Notes
-
-### 0.2.2
-- **Configurable Formats**: Added 6 predefined templates (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
-- **Custom Templates**: Support for user-defined commit message formats
-- **Optimized Prompts**: Refined instructions for maximum conciseness and brevity
-- **Markdown Cleanup**: Automatic removal of backticks and code blocks from LLM output
-- **Automation**: Integrated Go CLI build into the extension lifecycle
-- **UI improvements**: High-fidelity badges and CDN-based logo
-
-### 0.1.0
-- Initial release with local Ollama integration
 
 ---
 

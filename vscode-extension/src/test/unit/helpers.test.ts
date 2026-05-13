@@ -76,15 +76,18 @@ suite('Helper Functions', () => {
     suite('LlamitConfig interface', () => {
         test('should enforce correct structure', () => {
             const config: LlamitConfig = {
-                ollamaUrl: 'http://localhost:11434/api/generate',
+                apiType: 'ollama',
+                apiUrl: 'http://localhost:11434/api/generate',
                 model: 'qwen2.5-coder:7b',
                 commitFormat: 'conventional',
                 customFormat: ''
             };
 
-            assert.ok(config.ollamaUrl);
+            assert.ok(config.apiType);
+            assert.ok(config.apiUrl);
             assert.ok(config.model);
-            assert.strictEqual(typeof config.ollamaUrl, 'string');
+            assert.strictEqual(typeof config.apiType, 'string');
+            assert.strictEqual(typeof config.apiUrl, 'string');
             assert.strictEqual(typeof config.model, 'string');
             assert.strictEqual(typeof config.commitFormat, 'string');
             assert.strictEqual(typeof config.customFormat, 'string');
@@ -92,21 +95,26 @@ suite('Helper Functions', () => {
 
         test('should accept custom values', () => {
             const config: LlamitConfig = {
-                ollamaUrl: 'https://custom-ollama.example.com/api/generate',
-                model: 'llama2:13b',
+                apiType: 'openai-compatible',
+                apiUrl: 'https://gateway.example.com/v1/chat/completions',
+                apiKey: 'secret',
+                model: 'gpt-4o-mini',
                 commitFormat: 'gitmoji',
                 customFormat: 'My custom template'
             };
 
-            assert.strictEqual(config.ollamaUrl, 'https://custom-ollama.example.com/api/generate');
-            assert.strictEqual(config.model, 'llama2:13b');
+            assert.strictEqual(config.apiType, 'openai-compatible');
+            assert.strictEqual(config.apiUrl, 'https://gateway.example.com/v1/chat/completions');
+            assert.strictEqual(config.apiKey, 'secret');
+            assert.strictEqual(config.model, 'gpt-4o-mini');
             assert.strictEqual(config.commitFormat, 'gitmoji');
             assert.strictEqual(config.customFormat, 'My custom template');
         });
 
         test('should accept Ollama options', () => {
             const config: LlamitConfig = {
-                ollamaUrl: 'http://localhost:11434/api/generate',
+                apiType: 'ollama',
+                apiUrl: 'http://localhost:11434/api/generate',
                 model: 'qwen2.5-coder:7b',
                 commitFormat: 'conventional',
                 customFormat: '',
@@ -150,7 +158,8 @@ suite('Helper Functions', () => {
 
         test('should accept optional Ollama options', () => {
             const config: LlamitConfig = {
-                ollamaUrl: 'http://localhost:11434/api/generate',
+                apiType: 'ollama',
+                apiUrl: 'http://localhost:11434/api/generate',
                 model: 'qwen2.5-coder:7b',
                 commitFormat: 'conventional',
                 customFormat: ''
