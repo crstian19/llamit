@@ -77,6 +77,8 @@ Then install the generated `.vsix` or launch the extension in development mode w
 
 Llamit is configured through VS Code extension settings.
 
+For the full extension-specific setup and configuration reference, see [vscode-extension/README.md](./vscode-extension/README.md).
+
 ### Ollama
 
 ```json
@@ -205,6 +207,24 @@ Llamit uses automated CI/CD for releases.
 
 For maintainers, the full process is documented in [.github/RELEASE.md](./.github/RELEASE.md).
 
+## Telemetry
+
+Llamit collects minimal anonymous telemetry to understand install and update activity across editors such as VS Code, VSCodium, and Cursor.
+
+- Sent only on `install` and `update`
+- Never sent on every editor launch
+- No code, diffs, commit messages, file paths, repository names, or personal identifiers are collected
+
+You can opt out at any time by setting:
+
+```json
+{
+  "llamit.telemetry.enabled": false
+}
+```
+
+Llamit also respects VS Code's global telemetry setting. See [USAGE_DATA.md](./USAGE_DATA.md) for the full data policy.
+
 ## Contributing
 
 1. Fork the repository
@@ -214,3 +234,13 @@ For maintainers, the full process is documented in [.github/RELEASE.md](./.githu
 5. Open a pull request
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contributor workflow.
+
+## License
+
+MIT License - see [LICENSE](./LICENSE) for details.
+
+## Acknowledgments
+
+- Built with [Claude](https://claude.ai) and other AI coding tools
+- Powered by local and OpenAI-compatible LLM backends
+- Inspired by the need for faster, better commit messages

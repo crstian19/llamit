@@ -59,7 +59,6 @@ npm run compile
 npx vsce package
 # Install the generated .vsix file in VS Code
 ```
-```
 
 ## Usage
 
@@ -280,6 +279,24 @@ Both components have comprehensive test coverage:
 
 See [CLAUDE.md](./CLAUDE.md) for detailed testing information.
 
+## Telemetry
+
+Llamit collects minimal anonymous telemetry for extension `install` and `update` events only.
+
+- No code, diffs, commit messages, file paths, or repository names are collected
+- No personal identifiers are collected
+- Llamit respects VS Code's global telemetry settings
+
+You can disable Llamit-specific telemetry with:
+
+```json
+{
+  "llamit.telemetry.enabled": false
+}
+```
+
+See [USAGE_DATA.md](../USAGE_DATA.md) for the full policy.
+
 ## Contributing
 
 Contributions are welcome! This project was vibecoded, but that doesn't mean it can't be improved by humans too 😊
@@ -296,22 +313,9 @@ MIT License - see [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 
-- Built with [Claude](https://claude.ai) - AI pair programming at its finest
-- Powered by [Ollama](https://ollama.ai) - local LLM runtime
+- Built with [Claude](https://claude.ai) and other AI coding tools
+- Powered by Ollama and OpenAI-compatible LLM backends
 - Inspired by the need for better commit messages everywhere
-
-## Release Notes
-
-### 0.2.2
-- **Configurable Formats**: Added 6 predefined templates (Conventional, Angular, Gitmoji, Karma, Semantic, Google)
-- **Custom Templates**: Support for user-defined commit message formats
-- **Optimized Prompts**: Refined instructions for maximum conciseness and brevity
-- **Markdown Cleanup**: Automatic removal of backticks and code blocks from LLM output
-- **Automation**: Integrated Go CLI build into the extension lifecycle
-- **UI improvements**: High-fidelity badges and CDN-based logo
-
-### 0.1.0
-- Initial release with local Ollama integration
 
 ---
 
