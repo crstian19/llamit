@@ -2,7 +2,7 @@
     "name": "llamit",
     "displayName": "Llamit - AI Commit Messages",
     "description": "Generate semantic commit messages using Ollama or any OpenAI-compatible endpoint.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "publisher": "Crstian",
     "icon": "llamit.png",
     "license": "MIT",
