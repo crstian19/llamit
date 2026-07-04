@@ -5,6 +5,11 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-07-04
+
+### Changed
+- **Dependencies**: Updated dev dependencies and CI tooling (`sinon` to v22, `@types/sinon` to v22, `@vscode/test-electron` to v3, `@vscode/vsce` to v3.9.2, `mocha` to v11.7.6, `@types/node` to v25.9.4, `@types/vscode` to v1.125.0, and `actions/checkout` to v7).
+
 ## [2.0.0] - 2026-05-12
 
 ### Added
