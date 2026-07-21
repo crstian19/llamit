@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { execFile } from 'child_process';
 import * as path from 'path';
 import { getBinaryPath, LlamitConfig, generateCommitMessage, GitDiffResult, getGitDiffCascade, Repository } from './helpers';
-import { sendTelemetry, getTelemetryEvent, persistTrackedVersion, TelemetryEventName } from './telemetry';
+import { sendTelemetry, getTelemetryEvent, persistTrackedVersion, TelemetryEventName, LAST_TRACKED_VERSION_KEY } from './telemetry';
+import { maybeShowStarNudge, maybeShowReleaseNotes, STAR_NUDGE_DISMISSED_KEY, RELEASE_NOTES_SHOWN_KEY } from './starNudge';
 
 const OLLAMA_URL_DEPRECATION_KEY = 'llamit.deprecation.ollamaUrl.dismissed';
 const OLLAMA_URL_2_0_UPDATE_NOTICE_KEY = 'llamit.deprecation.ollamaUrl.2.0.0.dismissed';
@@ -240,11 +241,54 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(openSettingsDisposable);
 
+    // Clears the stored prompt state so the install / update notifications can be
+    // reviewed again. Handy for testing, and lets users re-open the release notes.
+    let resetNotificationsDisposable = vscode.commands.registerCommand('llamit.resetNotifications', async () => {
+        const choice = await vscode.window.showQuickPick(
+            [
+                {
+                    label: 'Simulate fresh install',
+                    detail: 'Clears all prompt state — the star prompt shows on the next reload',
+                    mode: 'install' as const
+                },
+                {
+                    label: 'Simulate update',
+                    detail: 'Marks a previous version — the release notes open on the next reload',
+                    mode: 'update' as const
+                }
+            ],
+            { placeHolder: 'Reload the window afterwards to see the prompt' }
+        );
+
+        if (!choice) {
+            return;
+        }
+
+        await context.globalState.update(STAR_NUDGE_DISMISSED_KEY, false);
+        await context.globalState.update(RELEASE_NOTES_SHOWN_KEY, undefined);
+        await context.globalState.update(
+            LAST_TRACKED_VERSION_KEY,
+            choice.mode === 'install' ? undefined : '0.0.0'
+        );
+
+        const action = await vscode.window.showInformationMessage(
+            'Llamit notification state reset. Reload the window to see the prompt.',
+            'Reload Window'
+        );
+        if (action === 'Reload Window') {
+            await vscode.commands.executeCommand('workbench.action.reloadWindow');
+        }
+    });
+
+    context.subscriptions.push(resetNotificationsDisposable);
+
     // Send anonymous telemetry on install or update only (not on every activation)
     const currentVersion = context.extension.packageJSON.version as string | undefined;
     if (currentVersion) {
         const event = getTelemetryEvent(context, currentVersion);
         maybeHandleDeprecatedOllamaUrlSetting(context, currentVersion, event).catch(() => { /* ignore */ });
+        maybeShowStarNudge(context, event).catch(() => { /* ignore */ });
+        maybeShowReleaseNotes(context, event, currentVersion, context.extensionPath).catch(() => { /* ignore */ });
         if (event) {
             sendTelemetry(context, event, currentVersion).then(() => {
                 persistTrackedVersion(context, currentVersion);

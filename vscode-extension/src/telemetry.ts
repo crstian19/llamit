@@ -5,6 +5,8 @@ const UMAMI_WEBSITE_ID = '10cfe8a0-4329-40a5-88c5-83b8ca2cc552';
 
 export type TelemetryEventName = 'install' | 'update';
 
+export const LAST_TRACKED_VERSION_KEY = 'llamit.lastTrackedVersion';
+
 /**
  * Sends a single anonymous ping to the self-hosted Umami analytics instance.
  *
@@ -76,7 +78,7 @@ export function getTelemetryEvent(
     context: vscode.ExtensionContext,
     currentVersion: string
 ): TelemetryEventName | null {
-    const storedVersion = context.globalState.get<string>('llamit.lastTrackedVersion');
+    const storedVersion = context.globalState.get<string>(LAST_TRACKED_VERSION_KEY);
 
     if (!storedVersion) {
         return 'install';
@@ -96,5 +98,5 @@ export async function persistTrackedVersion(
     context: vscode.ExtensionContext,
     version: string
 ): Promise<void> {
-    await context.globalState.update('llamit.lastTrackedVersion', version);
+    await context.globalState.update(LAST_TRACKED_VERSION_KEY, version);
 }
