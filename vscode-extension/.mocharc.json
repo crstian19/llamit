@@ -1,5 +1,5 @@
 {
-    "require": ["ts-node/register"],
+    "require": ["tsx/cjs"],
     "extensions": ["ts"],
     "spec": ["src/test/unit/**/*.test.ts"],
     "watch-files": ["src/**/*.ts"]
