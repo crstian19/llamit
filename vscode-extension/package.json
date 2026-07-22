@@ -285,7 +285,7 @@
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
         "test": "node ./out/test/runTests.js",
-        "test:unit": "mocha --ui tdd --require ts-node/register 'src/test/unit/**/*.test.ts'",
+        "test:unit": "mocha --ui tdd --require tsx/cjs 'src/test/unit/**/*.test.ts'",
         "package": "vsce package",
         "package:all": "bash scripts/package-all-platforms.sh",
         "publish:all": "bash scripts/publish-all-platforms.sh"
@@ -301,7 +301,7 @@
         "glob": "^13.0.0",
         "mocha": "^11.0.0",
         "sinon": "^22.0.0",
-        "ts-node": "^10.9.2",
-        "typescript": "^6.0.0"
+        "tsx": "^4.0.0",
+        "typescript": "^7.0.0"
     }
 }
