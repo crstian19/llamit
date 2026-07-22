@@ -5,6 +5,15 @@ All notable changes to the Llamit extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+> ⭐ Enjoying Llamit? A star on [GitHub](https://github.com/crstian19/llamit) genuinely helps the project grow.
+
+## [2.1.0] - 2026-07-21
+
+### Added
+- **First-install star prompt**: a one-time, opt-in notification inviting you to star the project on GitHub. It appears only once, never repeats, and performs no action on your account — clicking through opens the repo so you star it yourself.
+- **Release notes on update**: updating to a new version opens the rendered CHANGELOG in a Markdown preview once per version, so you can see what changed.
+- **Reset Notification Prompts command**: `Llamit: Reset Notification Prompts` clears the stored prompt state so the install and update prompts can be reviewed again.
+
 ## [2.0.1] - 2026-07-04
 
 ### Changed
