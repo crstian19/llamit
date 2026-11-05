@@ -296,7 +296,7 @@
     },
     "devDependencies": {
         "@types/vscode": "^1.85.0",
-        "@types/node": "25.x",
+        "@types/node": "26.x",
         "@types/mocha": "^10.0.6",
         "@types/sinon": "^22.0.0",
         "@types/glob": "^9.0.0",
