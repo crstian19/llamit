@@ -1,6 +1,16 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "github>crstian19/.github:renovate-config"
+    "github>crstian19/.github:renovate-config",
+    "group:allNonMajor",
+    "schedule:monthly"
+  ],
+  "packageRules": [
+    {
+      "description": "@types/node must follow the Node.js version bundled with VS Code, not the latest Node.js major",
+      "matchPackageNames": ["@types/node"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
   ]
 }
