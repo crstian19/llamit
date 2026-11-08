@@ -18,6 +18,9 @@
 
 </div>
 
+> [!NOTE]
+> **Maintenance mode.** Llamit is feature-complete and still works, but it is no longer actively developed. Security fixes and dependency updates will still be applied, but no new features are planned. Issues and pull requests are welcome.
+
 ## Highlights
 
 - Generate commit messages directly from VS Code Source Control

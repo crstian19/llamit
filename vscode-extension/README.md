@@ -18,6 +18,8 @@
 
 </div>
 
+> ⚠️ **Maintenance mode.** Llamit is feature-complete and still works, but it is no longer actively developed. Security fixes and dependency updates will still be applied, but no new features are planned. Issues and pull requests are welcome.
+
 ## Features
 
 - 🚀 **Generate commit messages instantly** from staged changes
